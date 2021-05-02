@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>net5.0;net461;net472;net48</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>2.2.1</Version>
     <Authors>Eldin Zenderink</Authors>
@@ -10,7 +10,6 @@
 See for more information: 
 https://github.com/EldinZenderink/SimpleIRCLib</Description>
     <PackageProjectUrl>https://github.com/EldinZenderink/SimpleIRCLib</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/EldinZenderink/SimpleIRCLib/blob/master/LICENSE</PackageLicenseUrl>
     <RepositoryUrl>https://github.com/EldinZenderink/SimpleIRCLib</RepositoryUrl>
     <RepositoryType>GitHub</RepositoryType>
     <PackageTags>C# IRC DCC PROTOCOL irc protocol simple</PackageTags>
@@ -18,7 +17,9 @@ https://github.com/EldinZenderink/SimpleIRCLib</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Properties\" />
+    <Compile Remove="Properties\**" />
+    <EmbeddedResource Remove="Properties\**" />
+    <None Remove="Properties\**" />
   </ItemGroup>
 
 </Project>
