@@ -14,6 +14,9 @@ https://github.com/EldinZenderink/SimpleIRCLib</Description>
     <RepositoryType>GitHub</RepositoryType>
     <PackageTags>C# IRC DCC PROTOCOL irc protocol simple</PackageTags>
     <PackageReleaseNotes>-- Added byte list buffer to access data downloaded per second (for parsing during the download for example (espescially used within LittleWeeb to parse subtitles during download).</PackageReleaseNotes>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>simpleIRCLibKey.snk</AssemblyOriginatorKeyFile>
+    <DelaySign>false</DelaySign>
   </PropertyGroup>
 
   <ItemGroup>

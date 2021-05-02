@@ -1,5 +1,5 @@
 ﻿using SimpleIRCLib;
-
+using SimpleIRCLib.EventArgs;
 using System;
 using System.Collections.Generic;
 
@@ -54,7 +54,7 @@ namespace IrcLibTest
 
             irc = new SimpleIRC();
 
-            irc.SetupIrc(ip, username, channel, port, ignoreCertificateErrors: true);
+            irc.SetupIrc(ip, username, channel, port, acceptAllCertificates: true);
 
             irc.IrcClient.OnDebugMessage += debugOutputCallback;
             irc.IrcClient.OnMessageReceived += chatOutputCallback;

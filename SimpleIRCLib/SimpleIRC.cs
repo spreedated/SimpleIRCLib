@@ -1,14 +1,15 @@
-﻿using System.Threading;
+﻿using SimpleIRCLib.Exceptions;
+using SimpleIRCLib.Clients;
+using System.Threading;
+using System;
 
 namespace SimpleIRCLib
 {
     /// <summary>
     /// A combiner class that combines all the logic from both the IrcClient & DCCClient with simple methods to control these clients.
     /// </summary>
-    public class SimpleIRC
+    public class SimpleIRC : IDisposable
     {
-
-
         /// <summary>
         /// Ip address of irc server
         /// </summary>
@@ -16,7 +17,8 @@ namespace SimpleIRCLib
         /// <summary>
         /// Port of irc server to connect to
         /// </summary>
-        public int NewPort { get; set; }
+        public int NewPort { get { return _NewPort; } set { _NewPort = value; if (_NewPort > 65535 || _NewPort <= 9) { throw new InvalidPortException($"Port {_NewPort} is not valid"); } } }
+        private int _NewPort;
         /// <summary>
         /// Username to register on irc server
         /// </summary>
@@ -49,12 +51,6 @@ namespace SimpleIRCLib
         /// </summary>
         public SimpleIRC()
         {
-            NewIP = "";
-            NewPort = 0;
-            NewUsername = "";
-            NewPassword = "";
-            NewChannels = "";
-            DownloadDir = "";
             IrcClient = new IrcClient();
             DccClient = new DCCClient();
         }
@@ -70,17 +66,15 @@ namespace SimpleIRCLib
         /// <param name="password">Password, optional parameter, where default value is "", can be used to connect to a password protected server.</param>
         /// <param name="timeout">Timeout, optional parameter, where default value is 3000 milliseconds, the maximum time before a server needs to answer, otherwise errors are thrown.</param>
         /// <param name="enableSSL">Timeout, optional parameter, where default value is 3000 milliseconds, the maximum time before a server needs to answer, otherwise errors are thrown.</param>
-        public void SetupIrc(string ip, string username, string channels, int port = 0, string password = "", int timeout = 3000, bool enableSSL = true, bool ignoreCertificateErrors = false)
+        public void SetupIrc(string ip, string username, string channels, int port = 0, string password = null, int timeout = 3000, bool enableSSL = true, bool acceptAllCertificates = true)
         {
             NewIP = ip;
             NewPort = port;
             NewUsername = username;
             NewPassword = password;
             NewChannels = channels;
-            DownloadDir = "";
 
-            IrcClient.SetConnectionInformation(ip, username, channels, DccClient, DownloadDir, port, password, timeout, enableSSL, ignoreCertificateErrors);
-
+            IrcClient.SetConnectionInformation(ip, username, channels, DccClient, DownloadDir, port, password, timeout, enableSSL, acceptAllCertificates);
         }
 
         /// <summary>
@@ -135,14 +129,10 @@ namespace SimpleIRCLib
         /// Stops the client
         /// </summary>
         /// <returns>true or false depending on succes</returns>
-        public bool StopClient()
+        internal void StopClient()
         {
-            //execute quit stuff
-            bool check = false;
-
-            check = IrcClient.StopClient();
-            check = IrcClient.StopXDCCDownload();
-            return check;
+            IrcClient.Dispose();
+            IrcClient.StopXDCCDownload();
         }
 
         /// <summary>
@@ -211,5 +201,16 @@ namespace SimpleIRCLib
             return IrcClient.SendRawMsg(message);
         }
 
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+
+            this.StopClient();
+            this.IrcClient.StopClient();
+            if (this.DccClient.CheckIfDownloading())
+            {
+                this.DccClient.AbortDownloader(1);
+            }
+        }
     }
 }

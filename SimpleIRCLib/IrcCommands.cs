@@ -10,7 +10,7 @@ namespace SimpleIRCLib
     /// <summary>
     /// Class used for sending specific commands to the IRC server, and waiting for responses from the irc server before continueing
     /// </summary>
-    class IrcCommands
+    class IrcCommands : IDisposable
     {
         /// <summary>
         /// reader to read from the irc server stream
@@ -245,6 +245,13 @@ namespace SimpleIRCLib
             }
 
 
+        }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            this._reader.Dispose();
+            this._writer.Dispose();
         }
     }
 }

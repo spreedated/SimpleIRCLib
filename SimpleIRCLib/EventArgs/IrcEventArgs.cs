@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace SimpleIRCLib
+namespace SimpleIRCLib.EventArgs
 {
     /// <summary>
     /// Event class for receiving messages from specific channels and users, fired within IrcClient.cs

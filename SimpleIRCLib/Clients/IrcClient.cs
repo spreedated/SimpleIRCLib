@@ -4,16 +4,18 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using SimpleIRCLib.EventArgs;
 
-namespace SimpleIRCLib
+namespace SimpleIRCLib.Clients
 {
     /// <summary>
     /// For running IRC Client logic, here is where all the magic happens
     /// </summary>
-    public class IrcClient
+    public class IrcClient : IDisposable
     {
 
         /// <summary>
@@ -71,7 +73,7 @@ namespace SimpleIRCLib
         /// <summary>
         /// for irgnoring self signed certificates
         /// </summary>
-        private bool _ignoreCertificateErrors;
+        private bool _acceptAllCertificates = true;
         /// <summary>
         /// for checking if a connection is succesfully established
         /// </summary>
@@ -147,19 +149,20 @@ namespace SimpleIRCLib
         /// <param name="timeout">Timeout, optional parameter, where default value is 3000 milliseconds, the maximum time before a server needs to answer, otherwise errors are thrown.</param>
         /// <param name="enableSSL">Timeout, optional parameter, where default value is 3000 milliseconds, the maximum time before a server needs to answer, otherwise errors are thrown.</param>
         public void SetConnectionInformation(string ip, string username, string channels,
-            DCCClient dccClient, string downloadDirectory, int port = 0, string password = "", int timeout = 3000, bool enableSSL = true, bool ignoreSelfSignedCertificate = false)
+            DCCClient dccClient, string downloadDirectory, int port = 0, string password = null, int timeout = 3000, bool enableSSL = true, bool ignoreSelfSignedCertificate = false)
         {
-            _newIp = ip;
-            _NewPort = port;
-            _NewUsername = username;
-            _newPassword = password;
-            _NewChannelss = channels;
-            _isConnectionEstablised = false;
-            _IsClientRunning = false;
-            _timeOut = timeout;
-            _downloadDirectory = downloadDirectory;
-            _dccClient = dccClient;
-            _enableSSL = enableSSL;
+            this._newIp = ip;
+            this._NewPort = port;
+            this._NewUsername = username;
+            this._newPassword = password;
+            this._NewChannelss = channels;
+            this._isConnectionEstablised = false;
+            this._IsClientRunning = false;
+            this._timeOut = timeout;
+            this._downloadDirectory = downloadDirectory;
+            this._dccClient = dccClient;
+            this._enableSSL = enableSSL;
+            this._acceptAllCertificates = ignoreSelfSignedCertificate;
 
             if (_enableSSL)
             {
@@ -304,7 +307,7 @@ namespace SimpleIRCLib
                 }
                 else
                 {
-                    _networkSStream = _ignoreCertificateErrors ? new SslStream(_tcpClient.GetStream(), true, (sender, certificate, chain, errors) => true) : new SslStream(_tcpClient.GetStream());
+                    _networkSStream = this._acceptAllCertificates ? new SslStream(_tcpClient.GetStream(), true, new RemoteCertificateValidationCallback(AcceptAllCertificate)) : new SslStream(_tcpClient.GetStream(), true, new RemoteCertificateValidationCallback(ValidateServerCertificate));
                     _networkSStream.AuthenticateAsClient(_newIp);
                     _streamReader = new StreamReader(_networkSStream);
                     _streamWriter = new StreamWriter(_networkSStream);
@@ -713,7 +716,7 @@ namespace SimpleIRCLib
         public bool GetUsersInChannel(string channel = "")
         {
 
-            if (channel != "")
+            if (channel != null || channel != "")
             {
                 return WriteIrc("NAMES " + channel);
             }
@@ -804,6 +807,37 @@ namespace SimpleIRCLib
         public bool IsClientRunning()
         {
             return _IsClientRunning;
+        }
+        internal static bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            if (sslPolicyErrors == SslPolicyErrors.None)
+            {
+                return true;
+            }
+
+            Console.WriteLine("Certificate error: {0}", sslPolicyErrors);
+
+            // refuse connection
+            return false;
+        }
+        internal static bool AcceptAllCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            return true;
+        }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+
+            this._receiverTask?.Dispose();
+            this._streamReader?.Dispose();
+            this._networkStream?.Close();
+            this._streamWriter?.Close();
+            this._streamWriter?.Dispose();
+            this._tcpClient?.Close();
+            this._tcpClient?.Dispose();
+
+            this._isConnectionEstablised = false;
         }
     }
 

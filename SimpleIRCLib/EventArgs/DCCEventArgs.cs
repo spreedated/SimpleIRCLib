@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using SimpleIRCLib.Clients;
 
-namespace SimpleIRCLib
+namespace SimpleIRCLib.EventArgs
 {
     /// <summary>
     /// Event Class for containing eventhandler for Download Updates from DCCClient.cs
