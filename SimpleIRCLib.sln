@@ -15,6 +15,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{E2B0562E-0
 		Docs\SimpleIRCLib.md = Docs\SimpleIRCLib.md
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Assets", "Assets", "{A723C8DF-5C3D-433A-9853-E4390B935769}"
+	ProjectSection(SolutionItems) = preProject
+		Assets\icon.ico = Assets\icon.ico
+		Assets\icon.psd = Assets\icon.psd
+		Assets\icon_1024_1024.png = Assets\icon_1024_1024.png
+		Assets\icon_128_128.png = Assets\icon_128_128.png
+		Assets\icon_256_256.png = Assets\icon_256_256.png
+		Assets\icon_512_512.png = Assets\icon_512_512.png
+		Assets\icon_64_64.png = Assets\icon_64_64.png
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
