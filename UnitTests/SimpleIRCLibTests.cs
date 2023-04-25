@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Collections.Generic;
 using System.Text;
+using System.Net.Http;
 
 namespace SimpleIRCTests
 {
@@ -68,11 +69,6 @@ namespace SimpleIRCTests
 
             Assert.DoesNotThrow(() => { s.Dispose(); });
         }
-        [TearDown]
-        public void TearDown()
-        {
-            
-        }
 
         #region Helper Functions
         private static IEnumerable<char> GenerateRandomString(int length)
@@ -93,14 +89,18 @@ namespace SimpleIRCTests
 
         private static bool HaveInternetConnection()
         {
-            HttpWebRequest webRequest = (HttpWebRequest)HttpWebRequest.Create("https://google.com");
-            webRequest.Timeout = 2000;
             try
             {
-                HttpWebResponse webResponse = (HttpWebResponse)webRequest.GetResponse();
-                if (webResponse.StatusCode != HttpStatusCode.OK)
+                using (HttpClient webRequest = new())
                 {
-                    return false;
+                    webRequest.Timeout = new TimeSpan(0, 0, 2);
+
+                    HttpResponseMessage webResponse = webRequest.GetAsync("https://google.com").Result;
+
+                    if (webResponse.StatusCode != HttpStatusCode.OK)
+                    {
+                        return false;
+                    }
                 }
             }
             catch (Exception)
