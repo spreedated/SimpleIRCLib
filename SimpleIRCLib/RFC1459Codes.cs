@@ -3,12 +3,12 @@
     /// <summary>
     /// Contians all the error codes specified by the RFC1459 protocol
     /// </summary>
-    class RFC1459Codes
+    static class RFC1459Codes
     {
         /// <summary>
         /// List with error messages.
         /// </summary>
-        public static string[] ListWithErrors = new string[] { @"            
+        public readonly static string[] ListWithErrors = new string[] { @"            
         401     ERR_NOSUCHNICK
                 ""<nickname> :No such nick/channel""
 
@@ -273,6 +273,5 @@
                 - Error sent to any user trying to view or change the
                   user mode for a user other than themselves.
         " };
-
     }
 }

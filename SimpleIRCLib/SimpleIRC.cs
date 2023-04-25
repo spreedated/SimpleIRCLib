@@ -1,14 +1,14 @@
-﻿using SimpleIRCLib.Exceptions;
-using SimpleIRCLib.Clients;
-using System.Threading;
+﻿using SimpleIRCLib.Clients;
+using SimpleIRCLib.Exceptions;
 using System;
+using System.Threading;
 
 namespace SimpleIRCLib
 {
     /// <summary>
     /// A combiner class that combines all the logic from both the IrcClient & DCCClient with simple methods to control these clients.
     /// </summary>
-    public class SimpleIRC : IDisposable
+    public class SimpleIrc : IDisposable
     {
         /// <summary>
         /// Ip address of irc server
@@ -35,7 +35,6 @@ namespace SimpleIRCLib
         /// download directory used for DCCClient.cs
         /// </summary>
         public string DownloadDir { get; set; }
-
         /// <summary>
         /// Irc Client for sending and receiving messages to a irc server 
         /// </summary>
@@ -43,18 +42,16 @@ namespace SimpleIRCLib
         /// <summary>
         /// DCCClient used by the IRCClient for starting a download on a separate thread using the DCC Protocol
         /// </summary>
-        public DCCClient DccClient { get; set; }
-
+        public DccClient DccClient { get; set; }
 
         /// <summary>
         /// Constructor, sets up bot ircclient and dccclient, so that users can register event handlers.
         /// </summary>
-        public SimpleIRC()
+        public SimpleIrc()
         {
-            IrcClient = new IrcClient();
-            DccClient = new DCCClient();
+            this.IrcClient = new IrcClient();
+            this.DccClient = new DccClient();
         }
-
 
         /// <summary>
         /// Setup the client to be able to connect to the server
@@ -203,8 +200,12 @@ namespace SimpleIRCLib
 
         public void Dispose()
         {
+            Dispose(true);
             GC.SuppressFinalize(this);
+        }
 
+        protected virtual void Dispose(bool disposing)
+        {
             this.StopClient();
             this.IrcClient.StopClient();
             if (this.DccClient.CheckIfDownloading())

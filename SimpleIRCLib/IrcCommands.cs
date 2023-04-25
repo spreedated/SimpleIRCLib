@@ -249,7 +249,12 @@ namespace SimpleIRCLib
 
         public void Dispose()
         {
+            Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
             this._reader.Dispose();
             this._writer.Dispose();
         }

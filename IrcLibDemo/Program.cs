@@ -1,21 +1,19 @@
-﻿using SimpleIRCLib;
-using SimpleIRCLib.EventArgs;
+﻿using System.Collections.Generic;
 using System;
-using System.Collections.Generic;
+using SimpleIRCLib.EventArgs;
+using SimpleIRCLib;
 
-namespace IrcLibTest
+namespace IrcLibDemo
 {
     class Program
     {
-
-        private static SimpleIRC irc;
+        private static SimpleIrc irc;
         static void Main(string[] args)
         {
             //setup vars
             string ip;
             int port;
             string username;
-            string password;
             string channel;
 
             Console.WriteLine("Server IP(default is : irc.rizon.net) = ");
@@ -40,36 +38,30 @@ namespace IrcLibTest
                 username = "AbstractShitFace";
             }
 
-            Console.WriteLine("Password(not working yet, default is : ) = ");
-            if ((password = Console.ReadLine()) == "")
-            {
-                password = "";
-            }
-
             Console.WriteLine("Channel(default is : #RareIRC) = ");
             if ((channel = Console.ReadLine()) == "")
             {
                 channel = "#beast-xdcc";
             }
 
-            irc = new SimpleIRC();
+            irc = new SimpleIrc();
 
             irc.SetupIrc(ip, username, channel, port, acceptAllCertificates: true);
 
-            irc.IrcClient.OnDebugMessage += debugOutputCallback;
-            irc.IrcClient.OnMessageReceived += chatOutputCallback;
-            irc.IrcClient.OnRawMessageReceived += rawOutputCallback;
-            irc.IrcClient.OnUserListReceived += userListCallback;
+            irc.IrcClient.OnDebugMessage += DebugOutputCallback;
+            irc.IrcClient.OnMessageReceived += ChatOutputCallback;
+            irc.IrcClient.OnRawMessageReceived += RawOutputCallback;
+            irc.IrcClient.OnUserListReceived += UserListCallback;
 
-            irc.DccClient.OnDccDebugMessage += dccDebugCallback;
-            irc.DccClient.OnDccEvent += downloadStatusChanged;
+            irc.DccClient.OnDccDebugMessage += DccDebugCallback;
+            irc.DccClient.OnDccEvent += DownloadStatusChanged;
 
             irc.StartClient();
 
             while (true)
             {
                 string Input = Console.ReadLine();
-                if (Input != null || Input != "" || Input != String.Empty && irc.IsClientRunning())
+                if (string.IsNullOrEmpty(Input) && irc.IsClientRunning())
                 {
                     irc.SendMessageToAll(Input);
                 }
@@ -77,7 +69,7 @@ namespace IrcLibTest
             }
         }
 
-        public static void downloadStatusChanged(object source, DCCEventArgs args)
+        public static void DownloadStatusChanged(object source, DCCEventArgs args)
         {
             Console.WriteLine("===============DCC EVENT===============");
             Console.WriteLine("DOWNLOAD Bot: " + args.Bot);
@@ -90,7 +82,7 @@ namespace IrcLibTest
             Console.WriteLine("");
         }
 
-        public static void chatOutputCallback(object source, IrcReceivedEventArgs args)
+        public static void ChatOutputCallback(object source, IrcReceivedEventArgs args)
         {
             Console.WriteLine("===============IRC MESSAGE===============");
             Console.WriteLine(args.Channel + " | " + args.User + ": " + args.Message);
@@ -98,21 +90,21 @@ namespace IrcLibTest
             Console.WriteLine("");
         }
 
-        public static void rawOutputCallback(object source, IrcRawReceivedEventArgs args)
+        public static void RawOutputCallback(object source, IrcRawReceivedEventArgs args)
         {
             Console.WriteLine("===============RAW MESSAGE===============");
             Console.WriteLine("RAW: " + args.Message);
             Console.WriteLine("===============END RAW MESSAGE===============");
         }
 
-        public static void debugOutputCallback(object source, IrcDebugMessageEventArgs args)
+        public static void DebugOutputCallback(object source, IrcDebugMessageEventArgs args)
         {
             Console.WriteLine("===============IRC DEBUG MESSAGE===============");
             Console.WriteLine(args.Type + "|" + args.Message);
             Console.WriteLine("===============END IRC DEBUG MESSAGE===============");
         }
 
-        public static void userListCallback(object source, IrcUserListReceivedEventArgs args)
+        public static void UserListCallback(object source, IrcUserListReceivedEventArgs args)
         {
             foreach (KeyValuePair<string, List<string>> usersPerChannel in args.UsersPerChannel)
             {
@@ -125,7 +117,7 @@ namespace IrcLibTest
             }
         }
 
-        public static void dccDebugCallback(object source, DCCDebugMessageArgs args)
+        public static void DccDebugCallback(object source, DCCDebugMessageArgs args)
         {
             Console.WriteLine("===============IRC DEBUG MESSAGE===============");
             Console.WriteLine(args.Type + "|" + args.Message);

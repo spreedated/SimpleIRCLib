@@ -1,6 +1,6 @@
-﻿using System;
+﻿using SimpleIRCLib.Clients;
+using System;
 using System.Collections.Generic;
-using SimpleIRCLib.Clients;
 
 namespace SimpleIRCLib.EventArgs
 {
@@ -25,7 +25,7 @@ namespace SimpleIRCLib.EventArgs
         /// Progress : percentage downloaded (0-100%) (is int!)
         /// </summary>
         /// <param name="currentClient"></param>
-        public DCCEventArgs(DCCClient currentClient)
+        public DCCEventArgs(DccClient currentClient)
         {
             DccString = currentClient.NewDccString;
             FileName = currentClient.NewFileName;

@@ -30,12 +30,12 @@ namespace SimpleIRCTests
         [Test]
         public void ConstructorTest()
         {
-            Assert.DoesNotThrow(() => { _ = new SimpleIRC(); });
+            Assert.DoesNotThrow(() => { _ = new SimpleIrc(); });
         }
         [Test]
         public void SetupTest()
         {
-            SimpleIRC s = new();
+            SimpleIrc s = new();
             Assert.DoesNotThrow(()=> { s.SetupIrc(this.ip, this.username, this.channel, this.port, string.Empty, enableSSL: true, acceptAllCertificates: true); });
             Assert.DoesNotThrow(()=> { s.SetupIrc(this.ip, this.username, this.channel, this.port, string.Empty, enableSSL: true, acceptAllCertificates: false); });
             Assert.DoesNotThrow(()=> { s.SetupIrc(this.ip, this.username, this.channel, this.port, string.Empty, enableSSL: false, acceptAllCertificates: false); });
@@ -49,7 +49,7 @@ namespace SimpleIRCTests
         {
             DecisionRunTest();
 
-            SimpleIRC s = new();
+            SimpleIrc s = new();
             Assert.DoesNotThrow(() => { s.SetupIrc(this.ip, this.username, this.channel, this.port, string.Empty, 100, false, true); });
             Assert.DoesNotThrow(() => { Assert.True(s.StartClient()); });
             Assert.True(s.IsClientRunning());
@@ -61,7 +61,7 @@ namespace SimpleIRCTests
         {
             DecisionRunTest();
 
-            SimpleIRC s = new();
+            SimpleIrc s = new();
             Assert.DoesNotThrow(() => { s.SetupIrc(this.ip, this.username, this.channel, 9999, string.Empty, 100, true, true); });
             Assert.DoesNotThrow(() => { Assert.True(s.StartClient()); });
             Assert.True(s.IsClientRunning());

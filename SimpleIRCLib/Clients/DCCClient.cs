@@ -1,21 +1,20 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using SimpleIRCLib.EventArgs;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using SimpleIRCLib.EventArgs;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SimpleIRCLib.Clients
 {
     /// <summary>
     /// Class for downloading files using the DCC protocol on a sperarate thread from the main IRC Client thread.
     /// </summary>
-    public class DCCClient
+    public class DccClient
     {
-
         /// <summary>
         /// For firing update event using DCCEventArgs from DCCEventArgs.cs
         /// </summary>
@@ -105,14 +104,6 @@ namespace SimpleIRCLib.Clients
         private string _curDownloadDir;
 
         /// <summary>
-        /// Initial constructor.
-        /// </summary>
-        public DCCClient()
-        {
-            IsDownloading = false;
-        }
-
-        /// <summary>
         /// Starts a downloader by parsing the received message from the irc server on information
         /// </summary>
         /// <param name="dccString">message from irc server</param>
@@ -141,7 +132,7 @@ namespace SimpleIRCLib.Clients
                     _shouldAbort = false;
 
                     //start the downloader thread
-                    Task.Factory.StartNew(()=> { Thread.CurrentThread.Name = "Downloader Task"; this.Downloader(); });
+                    Task.Factory.StartNew(() => { Thread.CurrentThread.Name = "Downloader Task"; this.Downloader(); });
                 }
                 else
                 {

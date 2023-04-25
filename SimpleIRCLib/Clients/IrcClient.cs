@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SimpleIRCLib.EventArgs;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -8,7 +9,6 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using SimpleIRCLib.EventArgs;
 
 namespace SimpleIRCLib.Clients
 {
@@ -93,7 +93,7 @@ namespace SimpleIRCLib.Clients
         /// <summary>
         /// DCCClient to be used for downloading
         /// </summary>
-        private DCCClient _dccClient;
+        private DccClient _dccClient;
         /// <summary>
         /// TcpClient used for connecting to the irc server
         /// </summary>
@@ -128,15 +128,6 @@ namespace SimpleIRCLib.Clients
         private bool _stopTask = false;
 
         /// <summary>
-        /// Default constructor, needed so that the client can register events before starting the connection.
-        /// </summary>
-        public IrcClient()
-        {
-            _isConnectionEstablised = false;
-            _IsClientRunning = false;
-        }
-
-        /// <summary>
         /// Sets up the information needed for the client to start a connection to the irc server. Sends a warning to the debug message event if ports are out of the standard specified ports for IRC.
         /// </summary>
         /// <param name="ip">Server address, possibly works with dns addresses (irc.xxx.x), but ip addresses works just fine (of type string)</param>
@@ -149,7 +140,7 @@ namespace SimpleIRCLib.Clients
         /// <param name="timeout">Timeout, optional parameter, where default value is 3000 milliseconds, the maximum time before a server needs to answer, otherwise errors are thrown.</param>
         /// <param name="enableSSL">Timeout, optional parameter, where default value is 3000 milliseconds, the maximum time before a server needs to answer, otherwise errors are thrown.</param>
         public void SetConnectionInformation(string ip, string username, string channels,
-            DCCClient dccClient, string downloadDirectory, int port = 0, string password = null, int timeout = 3000, bool enableSSL = true, bool ignoreSelfSignedCertificate = false)
+            DccClient dccClient, string downloadDirectory, int port = 0, string password = null, int timeout = 3000, bool enableSSL = true, bool ignoreSelfSignedCertificate = false)
         {
             this._newIp = ip;
             this._NewPort = port;
