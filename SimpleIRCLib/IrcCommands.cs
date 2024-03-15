@@ -1,6 +1,8 @@
-﻿using System;
+﻿using SimpleIRCLib.ErrorCodes;
+using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
@@ -10,7 +12,7 @@ namespace SimpleIRCLib
     /// <summary>
     /// Class used for sending specific commands to the IRC server, and waiting for responses from the irc server before continueing
     /// </summary>
-    class IrcCommands : IDisposable
+    public class IrcCommands : IDisposable
     {
         /// <summary>
         /// reader to read from the irc server stream
@@ -41,6 +43,7 @@ namespace SimpleIRCLib
         /// channel that hs been joined
         /// </summary>
         private string _channels;
+        private bool disposedValue;
 
         /// <summary>
         /// Constructor, that requires the stream reader and writer set before initializing
@@ -48,8 +51,8 @@ namespace SimpleIRCLib
         /// <param name="stream">Stream to read/write from/to</param>
         public IrcCommands(NetworkStream stream)
         {
-            _reader = new StreamReader(stream);
-            _writer = new StreamWriter(stream);
+            this._reader = new StreamReader(stream);
+            this._writer = new StreamWriter(stream);
         }
 
         /// <summary>
@@ -58,8 +61,8 @@ namespace SimpleIRCLib
         /// <param name="stream">Stream to read/write from/to</param>
         public IrcCommands(SslStream stream)
         {
-            _reader = new StreamReader(stream);
-            _writer = new StreamWriter(stream);
+            this._reader = new StreamReader(stream);
+            this._writer = new StreamWriter(stream);
         }
 
         /// <summary>
@@ -68,7 +71,7 @@ namespace SimpleIRCLib
         /// <returns>returns error message</returns>
         public string GetErrorMessage()
         {
-            return _errorMessage;
+            return this._errorMessage;
         }
 
         /// <summary>
@@ -77,7 +80,7 @@ namespace SimpleIRCLib
         /// <returns></returns>
         public int GetErrorNumber()
         {
-            return _responseNumber;
+            return this._responseNumber;
         }
 
         /// <summary>
@@ -95,14 +98,14 @@ namespace SimpleIRCLib
                 string ircData = _reader.ReadLine();
                 if (ircData.Contains("462"))
                 {
-                    _responseNumber = 462;
-                    _errorMessage = "PASSWORD ALREADY REGISTERED";
+                    this._responseNumber = 462;
+                    this._errorMessage = "PASSWORD ALREADY REGISTERED";
                     return false;
                 }
                 else if (ircData.Contains("461"))
                 {
-                    _responseNumber = 461;
-                    _errorMessage = "PASSWORD COMMAND NEEDS MORE PARAMETERS";
+                    this._responseNumber = 461;
+                    this._errorMessage = "PASSWORD COMMAND NEEDS MORE PARAMETERS";
                     return false;
                 }
                 else if (ircData.Contains("004"))
@@ -124,40 +127,36 @@ namespace SimpleIRCLib
         /// <returns>True/False, depending if error occured or not</returns>
         public bool JoinNetwork(string user, string channels)
         {
-            _username = user;
-            _channels = channels;
-            _writer.WriteLine("NICK " + user + Environment.NewLine);
-            _writer.Flush();
-            _writer.WriteLine("USER " + user + " 8 * :" + user + "_SimpleIRCLib" + Environment.NewLine);
-            _writer.Flush();
+            this._username = user;
+            this._channels = channels;
+            this._writer.WriteLine("NICK " + user + Environment.NewLine);
+            this._writer.Flush();
+            this._writer.WriteLine("USER " + user + " 8 * :" + user + "_SimpleIRCLib" + Environment.NewLine);
+            this._writer.Flush();
 
             while (true)
             {
                 try
                 {
-                    string ircData = _reader.ReadLine();
+                    string ircData = this._reader.ReadLine();
                     if (ircData != null)
                     {
                         if (ircData.Contains("PING"))
                         {
                             string pingID = ircData.Split(':')[1];
-                            _writer.WriteLine("PONG :" + pingID);
-                            _writer.Flush();
+                            this._writer.WriteLine("PONG :" + pingID);
+                            this._writer.Flush();
                         }
 
-                        if (CheckMessageForError(ircData))
+                        if (this.CheckMessageForError(ircData) && this._responseNumber == 266)
                         {
-                            if (_responseNumber == 266)
-                            {
-                                return JoinChannel(channels, user);
-                            }
+                            return this.JoinChannel(channels, user);
                         }
                     }
                     Thread.Sleep(1);
                 }
                 catch (Exception e)
                 {
-
                     Debug.WriteLine("RECEIVED: " + e.ToString());
                     return false;
                 }
@@ -172,21 +171,21 @@ namespace SimpleIRCLib
         /// <returns>True on sucess, false on error</returns>
         public bool JoinChannel(string channels, string username)
         {
-            _channels = channels;
+            this._channels = channels;
 
-            _writer.WriteLine("JOIN " + channels + Environment.NewLine);
-            _writer.Flush();
+            this._writer.WriteLine("JOIN " + channels + Environment.NewLine);
+            this._writer.Flush();
             while (true)
             {
+                string ircData = this._reader.ReadLine();
 
-                string ircData = _reader.ReadLine();
                 if (ircData != null)
                 {
                     if (ircData.Contains("PING"))
                     {
                         string pingID = ircData.Split(':')[1];
-                        _writer.WriteLine("PONG :" + pingID);
-                        _writer.Flush();
+                        this._writer.WriteLine("PONG :" + pingID);
+                        this._writer.Flush();
                     }
 
                     if (ircData.Contains(username) && ircData.Contains("JOIN"))
@@ -208,50 +207,50 @@ namespace SimpleIRCLib
             _writer.WriteLine("NICK " + nickname + Environment.NewLine);
             _writer.Flush();
 
-            while (true)
-            {
-
-                string ircData = _reader.ReadLine();
-
-                return CheckMessageForError(ircData);
-            }
+            return this.CheckMessageForError(this._reader.ReadLine());
         }
-
-
 
         public bool CheckMessageForError(string message)
         {
             string codeString = message.Split(' ')[1].Trim();
             if (int.TryParse(codeString, out _responseNumber))
             {
-                foreach (string errorMessage in RFC1459Codes.ListWithErrors)
+                Rfc1459ErrorCode errorcode = Rfc1459Codes.ListWithErrors.FirstOrDefault(x => $"{x.Code} {x.Name} {x.Description}".Equals(codeString, StringComparison.InvariantCultureIgnoreCase));
+
+                if (errorcode != null)
                 {
-                    if (errorMessage.Contains(codeString))
-                    {
-                        _errorMessage = errorMessage;
-                        return false;
-                    }
+                    this._errorMessage = $"{errorcode.Code} {errorcode.Name} {errorcode.Description}";
+                    return false;
                 }
 
-                _errorMessage = "Message does not contain Error Code!";
+                this._errorMessage = "Message does not contain Error Code!";
                 return true;
             }
-            else
+
+            Debug.WriteLine("Could not parse number");
+            this._responseNumber = 0;
+            this._errorMessage = "Message does not contain Error Code, could not parse number!";
+            return true;
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!this.disposedValue)
             {
-                Debug.WriteLine("Could not parse number");
-                _responseNumber = 0;
-                _errorMessage = "Message does not contain Error Code, could not parse number!";
-                return true;
+                if (disposing)
+                {
+                    this._reader?.Dispose();
+                    this._writer?.Dispose();
+                }
+
+                this.disposedValue = true;
             }
-
-
         }
 
         public void Dispose()
         {
+            this.Dispose(disposing: true);
             GC.SuppressFinalize(this);
-            this._reader.Dispose();
-            this._writer.Dispose();
         }
     }
 }

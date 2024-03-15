@@ -7,7 +7,7 @@ namespace IrcLibSample
 {
     internal class Program
     {
-        private static SimpleIRC irc;
+        private static SimpleIrc irc;
         public static void Main(string[] args)
         {
             //setup vars
@@ -51,7 +51,7 @@ namespace IrcLibSample
                 channel = "#beast-xdcc";
             }
 
-            irc = new SimpleIRC();
+            irc = new SimpleIrc();
 
             irc.SetupIrc(ip, username, channel, port, acceptAllCertificates: true);
 
@@ -75,7 +75,7 @@ namespace IrcLibSample
             }
         }
 
-        public static void DownloadStatusChanged(object source, DCCEventArgs args)
+        public static void DownloadStatusChanged(object source, DccEventArgs args)
         {
             Console.WriteLine("===============DCC EVENT===============");
             Console.WriteLine("DOWNLOAD Bot: " + args.Bot);
@@ -123,7 +123,7 @@ namespace IrcLibSample
             }
         }
 
-        public static void DccDebugCallback(object source, DCCDebugMessageArgs args)
+        public static void DccDebugCallback(object source, DccDebugMessageArgs args)
         {
             Console.WriteLine("===============IRC DEBUG MESSAGE===============");
             Console.WriteLine(args.Type + "|" + args.Message);

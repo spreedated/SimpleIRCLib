@@ -1,48 +1,14 @@
-﻿using System;
+﻿using SimpleIRCLib.Clients;
+using System;
 using System.Collections.Generic;
-using SimpleIRCLib.Clients;
 
 namespace SimpleIRCLib.EventArgs
 {
     /// <summary>
     /// Event Class for containing eventhandler for Download Updates from DCCClient.cs
     /// </summary>
-    public class DCCEventArgs
+    public class DccEventArgs : System.EventArgs
     {
-        /// <summary>
-        /// Event for download updates, containging information about the following
-        /// DccString : unparsed dccstring received from server, handy for debugging purposes
-        /// FileName : file that is currently being downloaded
-        /// FileSize : size of file that is currently being downloaded
-        /// Ip : server address where file originates from
-        /// Port : port of server where file originates from
-        /// Pack : original pack that the user requested
-        /// Bot : original bot where the user requested a pack (file) from
-        /// BytesPerSecond : current download speed in bytes p/s 
-        /// KBytesPerSecond : current download speed in kbytes p/s
-        /// MBytesPerSecond : current download speed in mbytes p/s
-        /// Status : current download status, for example: (WAITING, DOWNLOADING, FAILED, ABORTED, etc)
-        /// Progress : percentage downloaded (0-100%) (is int!)
-        /// </summary>
-        /// <param name="currentClient"></param>
-        public DCCEventArgs(DCCClient currentClient)
-        {
-            DccString = currentClient.NewDccString;
-            FileName = currentClient.NewFileName;
-            FileSize = currentClient.NewFileSize;
-            Ip = currentClient.NewIP;
-            Port = currentClient.NewPortNum;
-            Pack = currentClient.PackNum;
-            Bot = currentClient.BotName;
-            BytesPerSecond = currentClient.BytesPerSecond;
-            KBytesPerSecond = currentClient.KBytesPerSecond;
-            MBytesPerSecond = currentClient.MBytesPerSecond;
-            Status = currentClient.Status;
-            Progress = currentClient.Progress;
-            FilePath = currentClient.CurrentFilePath;
-            Buffer = currentClient.Buffer;
-        }
-
         /// <summary>
         /// To access the latest downloaded data (per second). 
         /// </summary>
@@ -99,24 +65,47 @@ namespace SimpleIRCLib.EventArgs
         /// Path to file that is being downloaded
         /// </summary>
         public string FilePath { get; }
+
+        /// <summary>
+        /// Event for download updates, containging information about the following
+        /// DccString : unparsed dccstring received from server, handy for debugging purposes
+        /// FileName : file that is currently being downloaded
+        /// FileSize : size of file that is currently being downloaded
+        /// Ip : server address where file originates from
+        /// Port : port of server where file originates from
+        /// Pack : original pack that the user requested
+        /// Bot : original bot where the user requested a pack (file) from
+        /// BytesPerSecond : current download speed in bytes p/s 
+        /// KBytesPerSecond : current download speed in kbytes p/s
+        /// MBytesPerSecond : current download speed in mbytes p/s
+        /// Status : current download status, for example: (WAITING, DOWNLOADING, FAILED, ABORTED, etc)
+        /// Progress : percentage downloaded (0-100%) (is int!)
+        /// </summary>
+        /// <param name="currentClient"></param>
+        public DccEventArgs(DCCClient currentClient)
+        {
+            this.DccString = currentClient.NewDccString;
+            this.FileName = currentClient.NewFileName;
+            this.FileSize = currentClient.NewFileSize;
+            this.Ip = currentClient.NewIP;
+            this.Port = currentClient.NewPortNum;
+            this.Pack = currentClient.PackNum;
+            this.Bot = currentClient.BotName;
+            this.BytesPerSecond = currentClient.BytesPerSecond;
+            this.KBytesPerSecond = currentClient.KBytesPerSecond;
+            this.MBytesPerSecond = currentClient.MBytesPerSecond;
+            this.Status = currentClient.Status;
+            this.Progress = currentClient.Progress;
+            this.FilePath = currentClient.CurrentFilePath;
+            this.Buffer = currentClient.Buffer;
+        }
     }
 
     /// <summary>
     /// Event Class for handeling debug events fired within DCCClient.cs
     /// </summary>
-    public class DCCDebugMessageArgs
+    public class DccDebugMessageArgs
     {
-        /// <summary>
-        /// Event for debug messages specific to the DCC Client
-        /// </summary>
-        /// <param name="message">debug message</param>
-        /// <param name="type">type of debug message, handy for determing where message occured</param>
-        public DCCDebugMessageArgs(string message, string type)
-        {
-            Message = message;
-            Type = type;
-        }
-
         /// <summary>
         /// Containing debug message
         /// </summary>
@@ -125,5 +114,16 @@ namespace SimpleIRCLib.EventArgs
         /// Containing debug type
         /// </summary>
         public string Type { get; }
+
+        /// <summary>
+        /// Event for debug messages specific to the DCC Client
+        /// </summary>
+        /// <param name="message">debug message</param>
+        /// <param name="type">type of debug message, handy for determing where message occured</param>
+        public DccDebugMessageArgs(string message, string type)
+        {
+            this.Message = message;
+            this.Type = type;
+        }
     }
 }

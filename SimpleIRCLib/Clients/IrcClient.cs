@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SimpleIRCLib.EventArgs;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -8,7 +9,6 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using SimpleIRCLib.EventArgs;
 
 namespace SimpleIRCLib.Clients
 {
@@ -42,98 +42,123 @@ namespace SimpleIRCLib.Clients
         /// Port of irc server to connect to
         /// </summary>
         private int _NewPort;
+
         /// <summary>
         /// Username to register on irc server
         /// </summary>
         private string _NewUsername;
+
         /// <summary>
         /// Password to connect to a secured irc server
         /// </summary>
         private string _newPassword;
+
         /// <summary>
         /// Ip address of irc server
         /// </summary>
         private string _newIp;
+
         /// <summary>
         /// List with channels seperated with ',' to join when connecting to IRC server
         /// </summary>
         private string _NewChannelss;
+
         /// <summary>
         /// timeout before throwing timeout errors (using OnDebugMessage)
         /// </summary>
         private int _timeOut;
+
         /// <summary>
         /// download directory used for DCCClient.cs
         /// </summary>
         private string _downloadDirectory;
+
         /// <summary>
         /// for enabling tls/ssl secured connection to the irc server
         /// </summary>
         private bool _enableSSL;
+
         /// <summary>
         /// for irgnoring self signed certificates
         /// </summary>
         private bool _acceptAllCertificates = true;
+
         /// <summary>
         /// for checking if a connection is succesfully established
         /// </summary>
         private bool _isConnectionEstablised;
+
         /// <summary>
         /// for checking if client has started listening to the server
         /// </summary>
         private bool _IsClientRunning;
+
         /// <summary>
         /// packnumber used to initialize dccclient downloader
         /// </summary>
         private string _packNumber;
+
         /// <summary>
         /// bot used to initialzie dccclient downloader
         /// </summary>
         private string _bot;
+
         /// <summary>
         /// DCCClient to be used for downloading
         /// </summary>
         private DCCClient _dccClient;
+
         /// <summary>
         /// TcpClient used for connecting to the irc server
         /// </summary>
         private TcpClient _tcpClient;
+
         /// <summary>
         /// IRC commands
         /// </summary>
         private IrcCommands _ircCommands;
+
         /// <summary>
         /// unsecure network stream for listening and reading to the irc server
         /// </summary>
         private NetworkStream _networkStream;
+
         /// <summary>
         /// secure network stream for listening and reading to the irc server
         /// </summary>
         private SslStream _networkSStream;
+
         /// <summary>
         /// used for writing to the irc server
         /// </summary>
         private StreamWriter _streamWriter;
+
         /// <summary>
         /// used for reading from the irc server
         /// </summary>
         private StreamReader _streamReader;
+
         /// <summary>
         /// receiver task
         /// </summary>
         private Task _receiverTask = null;
+
         /// <summary>
         /// used for stopping the receiver task 
         /// </summary>
         private bool _stopTask = false;
+        private bool disposedValue;
+        private static readonly string[] separator = new string[] { "PRIVMSG" };
+        private static readonly string[] separatorArray = new string[] { "JOIN" };
+        private static readonly string[] separatorArray0 = new string[] { "QUIT" };
 
         /// <summary>
         /// Default constructor, needed so that the client can register events before starting the connection.
         /// </summary>
         public IrcClient()
         {
-            _isConnectionEstablised = false;
-            _IsClientRunning = false;
+            this._isConnectionEstablised = false;
+            this._IsClientRunning = false;
         }
 
         /// <summary>
@@ -207,11 +232,11 @@ namespace SimpleIRCLib.Clients
             try
             {
                 _isConnectionEstablised = false;
-                _receiverTask = new Task(StartReceivingChat);
+                _receiverTask = new Task(this.StartReceivingChat);
                 _receiverTask.Start();
 
                 int timeout = 0;
-                while (!_isConnectionEstablised)
+                while (!this._isConnectionEstablised)
                 {
                     Thread.Sleep(1);
                     if (timeout > _timeOut)
@@ -239,37 +264,37 @@ namespace SimpleIRCLib.Clients
         {
             OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs("STARTING IRC CLIENT SHUTDOWN PROCEDURE", "QUIT"));
             //send quit to server
-            if (WriteIrc("QUIT"))
+            if (this.WriteIrc("QUIT"))
             {
                 int timeout = 0;
-                while (_tcpClient.Connected)
+                while (this._tcpClient.Connected)
                 {
                     Thread.Sleep(1);
-                    if (timeout >= _timeOut)
+                    if (timeout >= this._timeOut)
                     {
                         return false;
                     }
                     timeout++;
                 }
 
-                _stopTask = true;
+                this._stopTask = true;
                 Thread.Sleep(200);
                 //stop everything in right order
-                _receiverTask.Dispose();
-                _streamReader.Dispose();
-                _networkStream.Close();
-                _streamWriter.Close();
-                _tcpClient.Close();
+                this._receiverTask.Dispose();
+                this._streamReader.Dispose();
+                this._networkStream.Close();
+                this._streamWriter.Close();
+                this._tcpClient.Close();
 
-                _isConnectionEstablised = false;
+                this._isConnectionEstablised = false;
 
-                OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs("FINISHED SHUTDOWN PROCEDURE", "QUIT"));
+                this.OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs("FINISHED SHUTDOWN PROCEDURE", "QUIT"));
                 return true;
 
             }
             else
             {
-                OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs("COULD NOT WRITE QUIT COMMAND TO SERVER", "QUIT"));
+                this.OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs("COULD NOT WRITE QUIT COMMAND TO SERVER", "QUIT"));
                 return true;
             }
         }
@@ -279,17 +304,16 @@ namespace SimpleIRCLib.Clients
         /// </summary>
         public void StartReceivingChat()
         {
-
-            _tcpClient = new TcpClient(_newIp, _NewPort);
+            this._tcpClient = new TcpClient(this._newIp, this._NewPort);
 
             int timeout = 0;
-            while (!_tcpClient.Connected)
+            while (!this._tcpClient.Connected)
             {
                 Thread.Sleep(1);
 
-                if (timeout >= _timeOut)
+                if (timeout >= this._timeOut)
                 {
-                    OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs("TIMEOUT, COULD NOT CONNECT TO TCP SOCKET", "IRC SETUP"));
+                    this.OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs("TIMEOUT, COULD NOT CONNECT TO TCP SOCKET", "IRC SETUP"));
                 }
                 timeout++;
             }
@@ -298,56 +322,54 @@ namespace SimpleIRCLib.Clients
             try
             {
 
-                if (!_enableSSL)
+                if (!this._enableSSL)
                 {
-                    _networkStream = _tcpClient.GetStream(); Thread.Sleep(500);
-                    _streamReader = new StreamReader(_networkStream);
-                    _streamWriter = new StreamWriter(_networkStream);
-                    _ircCommands = new IrcCommands(_networkStream);
+                    this._networkStream = _tcpClient.GetStream(); Thread.Sleep(500);
+                    this._streamReader = new StreamReader(this._networkStream);
+                    this._streamWriter = new StreamWriter(this._networkStream);
+                    this._ircCommands = new IrcCommands(this._networkStream);
                 }
                 else
                 {
-                    _networkSStream = this._acceptAllCertificates ? new SslStream(_tcpClient.GetStream(), true, new RemoteCertificateValidationCallback(AcceptAllCertificate)) : new SslStream(_tcpClient.GetStream(), true, new RemoteCertificateValidationCallback(ValidateServerCertificate));
-                    _networkSStream.AuthenticateAsClient(_newIp);
-                    _streamReader = new StreamReader(_networkSStream);
-                    _streamWriter = new StreamWriter(_networkSStream);
-                    _ircCommands = new IrcCommands(_networkSStream);
+                    this._networkSStream = this._acceptAllCertificates ? new SslStream(this._tcpClient.GetStream(), true, new RemoteCertificateValidationCallback(AcceptAllCertificate)) : new SslStream(this._tcpClient.GetStream(), true, new RemoteCertificateValidationCallback(ValidateServerCertificate));
+                    this._networkSStream.AuthenticateAsClient(_newIp);
+                    this._streamReader = new StreamReader(this._networkSStream);
+                    this._streamWriter = new StreamWriter(this._networkSStream);
+                    this._ircCommands = new IrcCommands(this._networkSStream);
                 }
 
 
 
-                _isConnectionEstablised = true;
-                OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs("CONNECTED TO TCP SOCKET", "IRC SETUP"));
+                this._isConnectionEstablised = true;
+                this.OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs("CONNECTED TO TCP SOCKET", "IRC SETUP"));
 
 
 
-                if (_newPassword.Length > 0)
+                if (this._newPassword.Length > 0)
                 {
-                    if (!_ircCommands.SetPassWord(_newPassword))
+                    if (!this._ircCommands.SetPassWord(_newPassword))
                     {
-                        OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs(_ircCommands.GetErrorMessage(), "IRC SETUP ERROR"));
-                        _isConnectionEstablised = false;
+                        this.OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs(this._ircCommands.GetErrorMessage(), "IRC SETUP ERROR"));
+                        this._isConnectionEstablised = false;
                     }
                 }
-                Debug.WriteLine("Joining channels: " + _NewChannelss);
-                if (!_ircCommands.JoinNetwork(_NewUsername, _NewChannelss))
+                Debug.WriteLine("Joining channels: " + this._NewChannelss);
+                if (!_ircCommands.JoinNetwork(this._NewUsername, this._NewChannelss))
                 {
-                    OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs(_ircCommands.GetErrorMessage(), "IRC SETUP ERROR"));
-                    _isConnectionEstablised = false;
+                    this.OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs(this._ircCommands.GetErrorMessage(), "IRC SETUP ERROR"));
+                    this._isConnectionEstablised = false;
                 }
             }
             catch (Exception ex)
             {
-                OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs(ex.ToString(), "IRC SETUP"));
+                this.OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs(ex.ToString(), "IRC SETUP"));
             }
 
-
-
-            if (_isConnectionEstablised)
+            if (this._isConnectionEstablised)
             {
-                OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs("CONNECTED TO IRC SERVER", "IRC SETUP"));
-                _stopTask = false;
-                Task.Run(() => ReceiveChat());
+                this.OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs("CONNECTED TO IRC SERVER", "IRC SETUP"));
+                this._stopTask = false;
+                Task.Run(() => this.ReceiveChat());
             }
         }
 
@@ -365,26 +387,23 @@ namespace SimpleIRCLib.Clients
         {
             try
             {
-                OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs("STARTING LISTENER!", "IRC RECEIVER"));
+                this.OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs("STARTING LISTENER!", "IRC RECEIVER"));
 
+                Dictionary<string, List<string>> usersPerChannelDictionary = [];
 
-                Dictionary<string, List<string>> usersPerChannelDictionary = new Dictionary<string, List<string>>();
-
-                _IsClientRunning = true;
-                _isConnectionEstablised = true;
-                while (!_stopTask)
+                this._IsClientRunning = true;
+                this._isConnectionEstablised = true;
+                while (!this._stopTask)
                 {
 
-                    string ircData = _streamReader.ReadLine();
+                    string ircData = this._streamReader.ReadLine();
 
-                    OnRawMessageReceived?.Invoke(this, new IrcRawReceivedEventArgs(ircData));
-
-
+                    this.OnRawMessageReceived?.Invoke(this, new IrcRawReceivedEventArgs(ircData));
 
                     if (ircData.Contains("PING"))
                     {
                         string pingID = ircData.Split(':')[1];
-                        WriteIrc("PONG :" + pingID);
+                        this.WriteIrc("PONG :" + pingID);
                     }
                     if (ircData.Contains("PRIVMSG"))
                     {
@@ -399,19 +418,16 @@ namespace SimpleIRCLib.Clients
                             string messageAndChannel = ircData.Split(new string[] { "PRIVMSG" }, StringSplitOptions.None)[1];
                             string message = messageAndChannel.Split(':')[1].Trim();
                             string channel = messageAndChannel.Split(':')[0].Trim();
-                            string user = ircData.Split(new string[] { "PRIVMSG" }, StringSplitOptions.None)[0].Split('!')[0].Substring(1);
+                            string user = ircData.Split(separator, StringSplitOptions.None)[0].Split('!')[0][1..];
 
                             channel = channel.Replace("=", string.Empty);
 
-                            OnMessageReceived?.Invoke(this, new IrcReceivedEventArgs(message, user, channel));
+                            this.OnMessageReceived?.Invoke(this, new IrcReceivedEventArgs(message, user, channel));
                         }
                         catch (Exception ex)
                         {
-                            OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs(ex.ToString(), "MESSAGE RECEIVED ERROR (PRIVMSG)"));
+                            this.OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs(ex.ToString(), "MESSAGE RECEIVED ERROR (PRIVMSG)"));
                         }
-
-
-
                     }
                     else if (ircData.Contains("JOIN"))
                     {
@@ -420,14 +436,14 @@ namespace SimpleIRCLib.Clients
 
                         try
                         {
-                            string channel = ircData.Split(new string[] { "JOIN" }, StringSplitOptions.None)[1].Split(':')[1];
-                            string userThatJoined = ircData.Split(new string[] { "JOIN" }, StringSplitOptions.None)[0].Split(':')[1].Split('!')[0];
+                            string channel = ircData.Split(separatorArray, StringSplitOptions.None)[1].Split(':')[1];
+                            string userThatJoined = ircData.Split(separatorArray, StringSplitOptions.None)[0].Split(':')[1].Split('!')[0];
 
-                            OnMessageReceived?.Invoke(this, new IrcReceivedEventArgs("User Joined", userThatJoined, channel));
+                            this.OnMessageReceived?.Invoke(this, new IrcReceivedEventArgs("User Joined", userThatJoined, channel));
                         }
                         catch (Exception ex)
                         {
-                            OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs(ex.ToString(), "MESSAGE RECEIVED ERROR (JOIN)"));
+                            this.OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs(ex.ToString(), "MESSAGE RECEIVED ERROR (JOIN)"));
                         }
 
                     }
@@ -437,19 +453,19 @@ namespace SimpleIRCLib.Clients
                         //RAW: :MrRareie!~MrRareie_@Rizon-AC4B78B2.cm-3-2a.dynamic.ziggo.nl QUIT 
                         try
                         {
-                            string user = ircData.Split(new string[] { "QUIT" }, StringSplitOptions.None)[0].Split('!')[0].Substring(1);
+                            string user = ircData.Split(separatorArray0, StringSplitOptions.None)[0].Split('!')[0].Substring(1);
 
-                            OnMessageReceived?.Invoke(this, new IrcReceivedEventArgs("User Left", user, "unknown"));
+                            this.OnMessageReceived?.Invoke(this, new IrcReceivedEventArgs("User Left", user, "unknown"));
                         }
                         catch (Exception ex)
                         {
-                            OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs(ex.ToString(), "MESSAGE RECEIVED ERROR (JOIN)"));
-                        };
+                            this.OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs(ex.ToString(), "MESSAGE RECEIVED ERROR (JOIN)"));
+                        }
                     }
 
                     if (ircData.Contains("DCC SEND") && ircData.Contains(_NewUsername))
                     {
-                        _dccClient.StartDownloader(ircData, _downloadDirectory, _bot, _packNumber, this);
+                        this._dccClient.StartDownloader(ircData, _downloadDirectory, _bot, _packNumber, this);
                     }
 
                     //RareIRC_Client = #weebirc :RareIRC_Client
@@ -458,11 +474,10 @@ namespace SimpleIRCLib.Clients
                         //:irc.x2x.cc 353 RoflHerp = #RareIRC :RoflHerp @MrRareie
                         try
                         {
-                            string channel = ircData.Split(new[] { " " + _NewUsername + " =" }, StringSplitOptions.None)[1].Split(':')[0].Replace(" ", string.Empty);
-                            string userListFullString = ircData.Split(new[] { " " + _NewUsername + " =" }, StringSplitOptions.None)[1].Split(':')[1];
+                            string channel = ircData.Split(new[] { " " + this._NewUsername + " =" }, StringSplitOptions.None)[1].Split(':')[0].Replace(" ", string.Empty);
+                            string userListFullString = ircData.Split(new[] { " " + this._NewUsername + " =" }, StringSplitOptions.None)[1].Split(':')[1];
 
-
-                            if (!channel.Contains(_NewUsername) && !channel.Contains("="))
+                            if (!channel.Contains(this._NewUsername) && !channel.Contains('='))
                             {
                                 string[] users = userListFullString.Split(' ');
                                 if (usersPerChannelDictionary.ContainsKey(channel))
@@ -472,7 +487,7 @@ namespace SimpleIRCLib.Clients
 
                                     foreach (string name in users)
                                     {
-                                        if (!name.Contains(_NewUsername))
+                                        if (!name.Contains(this._NewUsername))
                                         {
                                             currentUsers.Add(name);
                                         }
@@ -481,7 +496,7 @@ namespace SimpleIRCLib.Clients
                                 }
                                 else
                                 {
-                                    List<string> currentUsers = new List<string>();
+                                    List<string> currentUsers = [];
                                     foreach (string name in users)
                                     {
                                         currentUsers.Add(name);
@@ -489,18 +504,14 @@ namespace SimpleIRCLib.Clients
                                     usersPerChannelDictionary.Add(channel.Trim(), currentUsers);
                                 }
                             }
-
-
                         }
                         catch (Exception ex)
                         {
                             OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs(ex.ToString(), "MESSAGE RECEIVED ERROR (USERLIST)"));
                         }
-
-
                     }
 
-                    if (ircData.ToLower().Contains(" 366 "))
+                    if (ircData.Contains(" 366 ", StringComparison.CurrentCultureIgnoreCase))
                     {
                         OnUserListReceived?.Invoke(this, new IrcUserListReceivedEventArgs(usersPerChannelDictionary));
                         usersPerChannelDictionary.Clear();
@@ -508,18 +519,18 @@ namespace SimpleIRCLib.Clients
                     Thread.Sleep(1);
                 }
 
-                OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs("RECEIVER HAS STOPPED RUNNING", "MESSAGE RECEIVER"));
+                this.OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs("RECEIVER HAS STOPPED RUNNING", "MESSAGE RECEIVER"));
 
-                QuitConnect();
+                this.QuitConnect();
                 _stopTask = false;
             }
             catch (Exception ioex)
             {
-                OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs("LOST CONNECTION: " + ioex.ToString(), "MESSAGE RECEIVER"));
-                if (_isConnectionEstablised)
+                this.OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs("LOST CONNECTION: " + ioex.ToString(), "MESSAGE RECEIVER"));
+                if (this._isConnectionEstablised)
                 {
-                    _stopTask = false;
-                    QuitConnect();
+                    this._stopTask = false;
+                    this.QuitConnect();
                 }
             }
             _IsClientRunning = false;
@@ -540,7 +551,6 @@ namespace SimpleIRCLib.Clients
         /// <returns>true / false depending if it could send the message to the server</returns>
         public bool SendMessageToAll(string input)
         {
-
             input = input.Trim();
             Regex regex1 = new Regex(@"^(?=.*(?<botname>(?<=/msg)(.*)(?=xdcc)))(?=.*(?<packnum>(?<=(send)+(\s))(.*)))");
             Match matches1 = regex1.Match(input.ToLower());
@@ -551,64 +561,61 @@ namespace SimpleIRCLib.Clients
 
             if (matches1.Success)
             {
-                _bot = matches1.Groups["botname"].Value.Trim();
-                _packNumber = matches1.Groups["packnum"].Value.Trim();
-                string xdccdl = "PRIVMSG " + _bot + " :XDCC SEND " + _packNumber;
-                return WriteIrc(xdccdl);
+                this._bot = matches1.Groups["botname"].Value.Trim();
+                this._packNumber = matches1.Groups["packnum"].Value.Trim();
+                string xdccdl = "PRIVMSG " + this._bot + " :XDCC SEND " + this._packNumber;
+                return this.WriteIrc(xdccdl);
             }
             else if (matches2.Success)
             {
-                _bot = matches2.Groups["botname"].Value;
-                string xdcccl = "PRIVMSG " + _bot + " :XDCC CANCEL";
-                return WriteIrc(xdcccl);
+                this._bot = matches2.Groups["botname"].Value;
+                string xdcccl = "PRIVMSG " + this._bot + " :XDCC CANCEL";
+                return this.WriteIrc(xdcccl);
             }
             else if (matches3.Success)
             {
-                _bot = matches3.Groups["botname"].Value;
-                _packNumber = matches3.Groups["packnum"].Value;
-                string xdccdl = "PRIVMSG " + _bot + " :XDCC REMOVE " + _packNumber;
-                return WriteIrc(xdccdl);
+                this._bot = matches3.Groups["botname"].Value;
+                this._packNumber = matches3.Groups["packnum"].Value;
+                string xdccdl = "PRIVMSG " + this._bot + " :XDCC REMOVE " + this._packNumber;
+                return this.WriteIrc(xdccdl);
             }
-            else if (input.ToLower().Contains("/names"))
+            else if (input.Contains("/names", StringComparison.CurrentCultureIgnoreCase))
             {
-                if (input.Contains("#"))
+                if (input.Contains('#'))
                 {
                     string channelList = input.Split(' ')[1];
-                    return GetUsersInChannel(channelList);
+                    return this.GetUsersInChannel(channelList);
                 }
                 else
                 {
-                    return GetUsersInChannel("");
+                    return this.GetUsersInChannel("");
                 }
             }
-            else if (input.ToLower().Contains("/join"))
+            else if (input.Contains("/join", StringComparison.CurrentCultureIgnoreCase))
             {
-
                 if (input.Split(' ').Length > 0)
                 {
                     string channels = input.Split(' ')[1];
-                    _NewChannelss += channels;
-                    return WriteIrc("JOIN " + channels);
+                    this._NewChannelss += channels;
+                    return this.WriteIrc("JOIN " + channels);
                 }
                 else
                 {
                     return false;
                 }
             }
-            else if (input.ToLower().Contains("/quit"))
+            else if (input.Contains("/quit", StringComparison.CurrentCultureIgnoreCase))
             {
-                return QuitConnect();
+                return this.QuitConnect();
             }
-            else if (input.ToLower().Contains("/msg"))
+            else if (input.Contains("/msg", StringComparison.CurrentCultureIgnoreCase))
             {
-                return WriteIrc(input.Replace("/msg", "PRIVMSG"));
+                return this.WriteIrc(input.Replace("/msg", "PRIVMSG"));
             }
             else
             {
-                return WriteIrc("PRIVMSG " + _NewChannelss + " :" + input);
+                return this.WriteIrc("PRIVMSG " + _NewChannelss + " :" + input);
             }
-
-
         }
 
 
@@ -627,7 +634,6 @@ namespace SimpleIRCLib.Clients
         /// <returns>true / false depending if it could send the message to the server</returns>
         public bool SendMessageToChannel(string input, string channel)
         {
-
             input = input.Trim();
             Regex regex1 = new Regex(@"^(?=.*(?<botname>(?<=/msg)(.*)(?=xdcc)))(?=.*(?<packnum>(?<=(send)+(\s))(.*)))");
             Match matches1 = regex1.Match(input.ToLower());
@@ -638,64 +644,61 @@ namespace SimpleIRCLib.Clients
 
             if (matches1.Success)
             {
-                _bot = matches1.Groups["botname"].Value.Trim();
-                _packNumber = matches1.Groups["packnum"].Value.Trim();
-                string xdccdl = "PRIVMSG " + _bot + " :XDCC SEND " + _packNumber;
-                return WriteIrc(xdccdl);
+                this._bot = matches1.Groups["botname"].Value.Trim();
+                this._packNumber = matches1.Groups["packnum"].Value.Trim();
+                string xdccdl = "PRIVMSG " + this._bot + " :XDCC SEND " + this._packNumber;
+                return this.WriteIrc(xdccdl);
             }
             else if (matches2.Success)
             {
-                _bot = matches2.Groups["botname"].Value;
-                string xdcccl = "PRIVMSG " + _bot + " :XDCC CANCEL";
-                return WriteIrc(xdcccl);
+                this._bot = matches2.Groups["botname"].Value;
+                string xdcccl = "PRIVMSG " + this._bot + " :XDCC CANCEL";
+                return this.WriteIrc(xdcccl);
             }
             else if (matches3.Success)
             {
-                _bot = matches3.Groups["botname"].Value;
-                _packNumber = matches3.Groups["packnum"].Value;
-                string xdccdl = "PRIVMSG " + _bot + " :XDCC REMOVE " + _packNumber;
-                return WriteIrc(xdccdl);
+                this._bot = matches3.Groups["botname"].Value;
+                this._packNumber = matches3.Groups["packnum"].Value;
+                string xdccdl = "PRIVMSG " + this._bot + " :XDCC REMOVE " + this._packNumber;
+                return this.WriteIrc(xdccdl);
             }
-            else if (input.ToLower().Contains("/names"))
+            else if (input.Contains("/names", StringComparison.CurrentCultureIgnoreCase))
             {
-                if (input.Contains("#"))
+                if (input.Contains('#'))
                 {
                     string channelList = input.Split(' ')[1];
-                    return GetUsersInChannel(channelList);
+                    return this.GetUsersInChannel(channelList);
                 }
                 else
                 {
-                    return GetUsersInChannel(channel);
+                    return this.GetUsersInChannel(channel);
                 }
             }
-            else if (input.ToLower().Contains("/join"))
+            else if (input.Contains("/join", StringComparison.CurrentCultureIgnoreCase))
             {
-
                 if (input.Split(' ').Length > 0)
                 {
                     string channels = input.Split(' ')[1];
-                    _NewChannelss += channels;
-                    return WriteIrc("JOIN " + channels);
+                    this._NewChannelss += channels;
+                    return this.WriteIrc("JOIN " + channels);
                 }
                 else
                 {
                     return false;
                 }
             }
-            else if (input.ToLower().Contains("/quit"))
+            else if (input.Contains("/quit", StringComparison.CurrentCultureIgnoreCase))
             {
-                return QuitConnect();
+                return this.QuitConnect();
             }
-            else if (input.ToLower().Contains("/msg"))
+            else if (input.Contains("/msg", StringComparison.CurrentCultureIgnoreCase))
             {
-                return WriteIrc(input.Replace("/msg", "PRIVMSG"));
+                return this.WriteIrc(input.Replace("/msg", "PRIVMSG"));
             }
             else
             {
-                return WriteIrc("PRIVMSG " + channel + " :" + input);
+                return this.WriteIrc("PRIVMSG " + channel + " :" + input);
             }
-
-
         }
 
         /// <summary>
@@ -705,7 +708,7 @@ namespace SimpleIRCLib.Clients
         /// <returns>true/false depending if it could write to the irc server</returns>
         public bool SendRawMsg(string msg)
         {
-            return WriteIrc(msg);
+            return this.WriteIrc(msg);
         }
 
         /// <summary>
@@ -715,15 +718,12 @@ namespace SimpleIRCLib.Clients
         /// <returns>true/false depending if it could write to the server</returns>
         public bool GetUsersInChannel(string channel = "")
         {
+            if (string.IsNullOrEmpty(channel))
+            {
+                return this.WriteIrc("NAMES " + _NewChannelss);
+            }
 
-            if (channel != null || channel != "")
-            {
-                return WriteIrc("NAMES " + channel);
-            }
-            else
-            {
-                return WriteIrc("NAMES " + _NewChannelss);
-            }
+            return this.WriteIrc("NAMES " + channel);
         }
 
         /// <summary>
@@ -735,13 +735,13 @@ namespace SimpleIRCLib.Clients
         {
             try
             {
-                _streamWriter.Write(input + Environment.NewLine);
-                _streamWriter.Flush();
+                this._streamWriter.Write(input + Environment.NewLine);
+                this._streamWriter.Flush();
                 return true;
             }
             catch (Exception e)
             {
-                OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs("Could not send message" + input + ", _tcpClient client is not running :X, error : " + e.ToString(), "MESSAGE SENDER")); ;
+                this.OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs("Could not send message" + input + ", _tcpClient client is not running :X, error : " + e.ToString(), "MESSAGE SENDER")); ;
                 return false;
             }
 
@@ -755,11 +755,11 @@ namespace SimpleIRCLib.Clients
         {
             try
             {
-                return !_dccClient.AbortDownloader(_timeOut);
+                return !this._dccClient.AbortDownloader(_timeOut);
             }
             catch (Exception e)
             {
-                OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs("Could not stop XDCC Download, error: " + e.ToString(), "IRC CLIENT XDCC STOP"));
+                this.OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs("Could not stop XDCC Download, error: " + e.ToString(), "IRC CLIENT XDCC STOP"));
                 return true;
             }
         }
@@ -772,11 +772,11 @@ namespace SimpleIRCLib.Clients
         {
             try
             {
-                return _dccClient.CheckIfDownloading();
+                return this._dccClient.CheckIfDownloading();
             }
             catch (Exception e)
             {
-                OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs("Could not check if download has started, error: " + e.ToString(), "IRC CLIENT XDCC CHECK"));
+                this.OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs("Could not check if download has started, error: " + e.ToString(), "IRC CLIENT XDCC CHECK"));
                 return false;
             }
         }
@@ -786,9 +786,9 @@ namespace SimpleIRCLib.Clients
         /// </summary>
         public bool StopClient()
         {
-            _stopTask = true;
-            OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs("CLOSING CLIENT", "CLOSE"));
-            return QuitConnect();
+            this._stopTask = true;
+            this.OnDebugMessage?.Invoke(this, new IrcDebugMessageEventArgs("CLOSING CLIENT", "CLOSE"));
+            return this.QuitConnect();
         }
 
         /// <summary>
@@ -797,7 +797,7 @@ namespace SimpleIRCLib.Clients
         /// <returns>true/false depending on the connection status</returns>
         public bool IsConnectionEstablished()
         {
-            return _isConnectionEstablised;
+            return this._isConnectionEstablised;
         }
 
         /// <summary>
@@ -806,7 +806,7 @@ namespace SimpleIRCLib.Clients
         /// <returns>true or false depending if the client is running or not</returns>
         public bool IsClientRunning()
         {
-            return _IsClientRunning;
+            return this._IsClientRunning;
         }
         internal static bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
@@ -825,21 +825,31 @@ namespace SimpleIRCLib.Clients
             return true;
         }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    this._receiverTask?.Dispose();
+                    this._streamReader?.Dispose();
+                    this._networkStream?.Close();
+                    this._streamWriter?.Close();
+                    this._streamWriter?.Dispose();
+                    this._tcpClient?.Close();
+                    this._tcpClient?.Dispose();
+
+                    this._isConnectionEstablised = false;
+                }
+
+                disposedValue = true;
+            }
+        }
+
         public void Dispose()
         {
+            this.Dispose(disposing: true);
             GC.SuppressFinalize(this);
-
-            this._receiverTask?.Dispose();
-            this._streamReader?.Dispose();
-            this._networkStream?.Close();
-            this._streamWriter?.Close();
-            this._streamWriter?.Dispose();
-            this._tcpClient?.Close();
-            this._tcpClient?.Dispose();
-
-            this._isConnectionEstablised = false;
         }
     }
-
-
 }

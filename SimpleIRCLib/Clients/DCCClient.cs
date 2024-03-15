@@ -1,12 +1,12 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using SimpleIRCLib.EventArgs;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using SimpleIRCLib.EventArgs;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SimpleIRCLib.Clients
 {
@@ -19,11 +19,11 @@ namespace SimpleIRCLib.Clients
         /// <summary>
         /// For firing update event using DCCEventArgs from DCCEventArgs.cs
         /// </summary>
-        public event EventHandler<DCCEventArgs> OnDccEvent;
+        public event EventHandler<DccEventArgs> OnDccEvent;
         /// <summary>
         /// For firing debug event using DCCDebugMessageArgs from DCCEventArgs.cs
         /// </summary>
-        public event EventHandler<DCCDebugMessageArgs> OnDccDebugMessage;
+        public event EventHandler<DccDebugMessageArgs> OnDccDebugMessage;
 
         /// <summary>
         /// Raw DCC String used for getting the file location (server) and some basic file information
@@ -141,12 +141,12 @@ namespace SimpleIRCLib.Clients
                     _shouldAbort = false;
 
                     //start the downloader thread
-                    Task.Factory.StartNew(()=> { Thread.CurrentThread.Name = "Downloader Task"; this.Downloader(); });
+                    Task.Factory.StartNew(() => { Thread.CurrentThread.Name = "Downloader Task"; this.Downloader(); });
                 }
                 else
                 {
                     OnDccDebugMessage?.Invoke(this,
-                        new DCCDebugMessageArgs(
+                        new DccDebugMessageArgs(
                             "Can't parse dcc string and start downloader, failed to parse data, removing from que\n", "DCC STARTER"));
                     _ircClient.SendMessageToAll("/msg " + BotName + " xdcc remove " + PackNum);
                     _ircClient.SendMessageToAll("/msg " + BotName + " xdcc cancel");
@@ -157,12 +157,12 @@ namespace SimpleIRCLib.Clients
                 if (IsDownloading)
                 {
                     OnDccDebugMessage?.Invoke(this,
-                        new DCCDebugMessageArgs("You are already downloading! Ignore SEND request\n", "DCC STARTER"));
+                        new DccDebugMessageArgs("You are already downloading! Ignore SEND request\n", "DCC STARTER"));
                 }
                 else
                 {
                     OnDccDebugMessage?.Invoke(this,
-                        new DCCDebugMessageArgs("DCC String does not contain SEND and/or invalid values for parsing! Ignore SEND request\n", "DCC STARTER"));
+                        new DccDebugMessageArgs("DCC String does not contain SEND and/or invalid values for parsing! Ignore SEND request\n", "DCC STARTER"));
                 }
             }
         }
@@ -184,7 +184,7 @@ namespace SimpleIRCLib.Clients
 
             dccString = RemoveSpecialCharacters(dccString).Substring(1);
             OnDccDebugMessage?.Invoke(this,
-                new DCCDebugMessageArgs("DCCClient: DCC STRING: " + dccString, "DCC PARSER"));
+                new DccDebugMessageArgs("DCCClient: DCC STRING: " + dccString, "DCC PARSER"));
 
 
             if (!dccString.Contains(" :DCC"))
@@ -195,7 +195,7 @@ namespace SimpleIRCLib.Clients
                     NewFileName = dccString.Split('"')[1];
 
                     OnDccDebugMessage?.Invoke(this,
-                        new DCCDebugMessageArgs("DCCClient1: FILENAME PARSED: " + NewFileName, "DCC PARSER"));
+                        new DccDebugMessageArgs("DCCClient1: FILENAME PARSED: " + NewFileName, "DCC PARSER"));
                     string[] thaimportantnumbers = dccString.Split('"')[2].Trim().Split(' ');
                     if (thaimportantnumbers[0].Contains(":"))
                     {
@@ -207,7 +207,7 @@ namespace SimpleIRCLib.Clients
                         {
 
                             OnDccDebugMessage?.Invoke(this,
-                                new DCCDebugMessageArgs("DCCClient1: PARSING FOLLOWING IPBYTES: " + thaimportantnumbers[0], "DCC PARSER"));
+                                new DccDebugMessageArgs("DCCClient1: PARSING FOLLOWING IPBYTES: " + thaimportantnumbers[0], "DCC PARSER"));
                             string ipAddress = UInt64ToIPAddress(Int64.Parse(thaimportantnumbers[0]));
                             NewIP = ipAddress;
                         }
@@ -218,7 +218,7 @@ namespace SimpleIRCLib.Clients
                     }
 
                     OnDccDebugMessage?.Invoke(this,
-                        new DCCDebugMessageArgs("DCCClient1: IP PARSED: " + NewIP, "DCC PARSER"));
+                        new DccDebugMessageArgs("DCCClient1: IP PARSED: " + NewIP, "DCC PARSER"));
                     NewPortNum = int.Parse(thaimportantnumbers[1]);
                     NewFileSize = Int64.Parse(thaimportantnumbers[2]);
 
@@ -230,7 +230,7 @@ namespace SimpleIRCLib.Clients
 
 
                     OnDccDebugMessage?.Invoke(this,
-                        new DCCDebugMessageArgs("DCCClient2: FILENAME PARSED: " + NewFileName, "DCC PARSER"));
+                        new DccDebugMessageArgs("DCCClient2: FILENAME PARSED: " + NewFileName, "DCC PARSER"));
 
                     if (dccString.Split(' ')[3].Contains(":"))
                     {
@@ -243,7 +243,7 @@ namespace SimpleIRCLib.Clients
 
 
                             OnDccDebugMessage?.Invoke(this,
-                                new DCCDebugMessageArgs("DCCClient2: PARSING FOLLOWING IPBYTES DIRECTLY: " + dccString.Split(' ')[3], "DCC PARSER"));
+                                new DccDebugMessageArgs("DCCClient2: PARSING FOLLOWING IPBYTES DIRECTLY: " + dccString.Split(' ')[3], "DCC PARSER"));
                             string ipAddress = UInt64ToIPAddress(Int64.Parse(dccString.Split(' ')[3]));
                             NewIP = ipAddress;
                         }
@@ -254,7 +254,7 @@ namespace SimpleIRCLib.Clients
                         }
                     }
                     OnDccDebugMessage?.Invoke(this,
-                        new DCCDebugMessageArgs("DCCClient2: IP PARSED: " + NewIP, "DCC PARSER"));
+                        new DccDebugMessageArgs("DCCClient2: IP PARSED: " + NewIP, "DCC PARSER"));
                     NewPortNum = int.Parse(dccString.Split(' ')[4]);
                     NewFileSize = Int64.Parse(dccString.Split(' ')[5]);
                     return true;
@@ -268,7 +268,7 @@ namespace SimpleIRCLib.Clients
                     NewFileName = dccString.Split('"')[1];
 
                     OnDccDebugMessage?.Invoke(this,
-                        new DCCDebugMessageArgs("DCCClient3: FILENAME PARSED: " + NewFileName, "DCC PARSER"));
+                        new DccDebugMessageArgs("DCCClient3: FILENAME PARSED: " + NewFileName, "DCC PARSER"));
                     string[] thaimportantnumbers = dccString.Split('"')[2].Trim().Split(' ');
 
                     if (thaimportantnumbers[0].Contains(":"))
@@ -281,7 +281,7 @@ namespace SimpleIRCLib.Clients
                         {
 
                             OnDccDebugMessage?.Invoke(this,
-                                new DCCDebugMessageArgs("DCCClient3: PARSING FOLLOWING IPBYTES DIRECTLY: " + thaimportantnumbers[0], "DCC PARSER"));
+                                new DccDebugMessageArgs("DCCClient3: PARSING FOLLOWING IPBYTES DIRECTLY: " + thaimportantnumbers[0], "DCC PARSER"));
                             string ipAddress = UInt64ToIPAddress(Int64.Parse(thaimportantnumbers[0]));
                             NewIP = ipAddress;
                         }
@@ -293,7 +293,7 @@ namespace SimpleIRCLib.Clients
 
 
                     OnDccDebugMessage?.Invoke(this,
-                        new DCCDebugMessageArgs("DCCClient3: IP PARSED: " + NewIP, "DCC PARSER"));
+                        new DccDebugMessageArgs("DCCClient3: IP PARSED: " + NewIP, "DCC PARSER"));
                     NewPortNum = int.Parse(thaimportantnumbers[1]);
                     NewFileSize = Int64.Parse(thaimportantnumbers[2]);
                     return true;
@@ -303,7 +303,7 @@ namespace SimpleIRCLib.Clients
                     NewFileName = dccString.Split(' ')[5];
 
                     OnDccDebugMessage?.Invoke(this,
-                        new DCCDebugMessageArgs("DCCClient4: FILENAME PARSED: " + NewFileName, "DCC PARSER"));
+                        new DccDebugMessageArgs("DCCClient4: FILENAME PARSED: " + NewFileName, "DCC PARSER"));
 
                     if (dccString.Split(' ')[6].Contains(":"))
                     {
@@ -315,7 +315,7 @@ namespace SimpleIRCLib.Clients
                         {
 
                             OnDccDebugMessage?.Invoke(this,
-                                new DCCDebugMessageArgs("DCCClient4: PARSING FOLLOWING IPBYTES DIRECTLY: " + dccString.Split(' ')[6], "DCC PARSER"));
+                                new DccDebugMessageArgs("DCCClient4: PARSING FOLLOWING IPBYTES DIRECTLY: " + dccString.Split(' ')[6], "DCC PARSER"));
                             string ipAddress = UInt64ToIPAddress(Int64.Parse(dccString.Split(' ')[6]));
                             NewIP = ipAddress;
                         }
@@ -327,7 +327,7 @@ namespace SimpleIRCLib.Clients
                     }
 
                     OnDccDebugMessage?.Invoke(this,
-                        new DCCDebugMessageArgs("DCCClient4: IP PARSED: " + NewIP, "DCC PARSER"));
+                        new DccDebugMessageArgs("DCCClient4: IP PARSED: " + NewIP, "DCC PARSER"));
                     NewPortNum = int.Parse(dccString.Split(' ')[7]);
                     NewFileSize = Int64.Parse(dccString.Split(' ')[8]);
                     return true;
@@ -396,7 +396,7 @@ namespace SimpleIRCLib.Clients
                 if (!File.Exists(dlDirAndFileName))
                 {
                     OnDccDebugMessage?.Invoke(this,
-                        new DCCDebugMessageArgs("File does not exist yet, start connection with: " + NewIP + ":" + NewPortNum + Environment.NewLine, "DCC DOWNLOADER"));
+                        new DccDebugMessageArgs("File does not exist yet, start connection with: " + NewIP + ":" + NewPortNum + Environment.NewLine, "DCC DOWNLOADER"));
                     Thread.Sleep(500);
                     //start connection with tcp server
 
@@ -426,25 +426,25 @@ namespace SimpleIRCLib.Clients
                             if (NewFileSize > 1048576)
                             {
                                 OnDccDebugMessage?.Invoke(this,
-                                    new DCCDebugMessageArgs("Big file, big buffer (1 mb) \n ", "DCC DOWNLOADER"));
+                                    new DccDebugMessageArgs("Big file, big buffer (1 mb) \n ", "DCC DOWNLOADER"));
                                 buffer = new byte[16384];
                             }
                             else if (NewFileSize < 1048576 && NewFileSize > 2048)
                             {
                                 OnDccDebugMessage?.Invoke(this,
-                                    new DCCDebugMessageArgs("Smaller file (< 1 mb), smaller buffer (2 kb) \n ", "DCC DOWNLOADER"));
+                                    new DccDebugMessageArgs("Smaller file (< 1 mb), smaller buffer (2 kb) \n ", "DCC DOWNLOADER"));
                                 buffer = new byte[2048];
                             }
                             else if (NewFileSize < 2048 && NewFileSize > 128)
                             {
                                 OnDccDebugMessage?.Invoke(this,
-                                    new DCCDebugMessageArgs("Small file (< 2kb mb), small buffer (128 b) \n ", "DCC DOWNLOADER"));
+                                    new DccDebugMessageArgs("Small file (< 2kb mb), small buffer (128 b) \n ", "DCC DOWNLOADER"));
                                 buffer = new byte[128];
                             }
                             else
                             {
                                 OnDccDebugMessage?.Invoke(this,
-                                    new DCCDebugMessageArgs("Tiny file (< 128 b), tiny buffer (2 b) \n ", "DCC DOWNLOADER"));
+                                    new DccDebugMessageArgs("Tiny file (< 128 b), tiny buffer (2 b) \n ", "DCC DOWNLOADER"));
                                 buffer = new byte[2];
                             }
 
@@ -504,18 +504,18 @@ namespace SimpleIRCLib.Clients
                                     try
                                     {
                                         OnDccDebugMessage?.Invoke(this,
-                                            new DCCDebugMessageArgs("Downloader Stopped", "DCC DOWNLOADER"));
+                                            new DccDebugMessageArgs("Downloader Stopped", "DCC DOWNLOADER"));
                                         OnDccDebugMessage?.Invoke(this,
-                                            new DCCDebugMessageArgs("File " + CurrentFilePath + " will be deleted due to aborting", "DCC DOWNLOADER"));
+                                            new DccDebugMessageArgs("File " + CurrentFilePath + " will be deleted due to aborting", "DCC DOWNLOADER"));
                                         File.Delete(CurrentFilePath);
 
                                     }
                                     catch (Exception e)
                                     {
                                         OnDccDebugMessage?.Invoke(this,
-                                            new DCCDebugMessageArgs("File " + CurrentFilePath + " probably doesn't exist :X", "DCC DOWNLOADER"));
+                                            new DccDebugMessageArgs("File " + CurrentFilePath + " probably doesn't exist :X", "DCC DOWNLOADER"));
                                         OnDccDebugMessage?.Invoke(this,
-                                            new DCCDebugMessageArgs(e.ToString(), "DCC DOWNLOADER"));
+                                            new DccDebugMessageArgs(e.ToString(), "DCC DOWNLOADER"));
                                     }
 
                                     UpdateStatus("ABORTED");
@@ -528,9 +528,9 @@ namespace SimpleIRCLib.Clients
                                     {
                                         UpdateStatus("FAILED");
                                         OnDccDebugMessage?.Invoke(this,
-                                            new DCCDebugMessageArgs("Download stopped at < 95 % finished, deleting file: " + NewFileName + " \n", "DCC DOWNLOADER"));
+                                            new DccDebugMessageArgs("Download stopped at < 95 % finished, deleting file: " + NewFileName + " \n", "DCC DOWNLOADER"));
                                         OnDccDebugMessage?.Invoke(this,
-                                            new DCCDebugMessageArgs("Download stopped at : " + bytesReceived + " bytes, a total of " + Progress + "%", "DCC DOWNLOADER"));
+                                            new DccDebugMessageArgs("Download stopped at : " + bytesReceived + " bytes, a total of " + Progress + "%", "DCC DOWNLOADER"));
                                         File.Delete(dlDirAndFileName);
                                         timedOut = false;
 
@@ -540,9 +540,9 @@ namespace SimpleIRCLib.Clients
                                     {
                                         UpdateStatus("FAILED: TIMED OUT");
                                         OnDccDebugMessage?.Invoke(this,
-                                            new DCCDebugMessageArgs("Download timed out at < 95 % finished, deleting file: " + NewFileName + " \n", "DCC DOWNLOADER"));
+                                            new DccDebugMessageArgs("Download timed out at < 95 % finished, deleting file: " + NewFileName + " \n", "DCC DOWNLOADER"));
                                         OnDccDebugMessage?.Invoke(this,
-                                            new DCCDebugMessageArgs("Download stopped at : " + bytesReceived + " bytes, a total of " + Progress + "%", "DCC DOWNLOADER"));
+                                            new DccDebugMessageArgs("Download stopped at : " + bytesReceived + " bytes, a total of " + Progress + "%", "DCC DOWNLOADER"));
                                         File.Delete(dlDirAndFileName);
                                         timedOut = false;
                                     }
@@ -563,19 +563,19 @@ namespace SimpleIRCLib.Clients
                 else
                 {
                     OnDccDebugMessage?.Invoke(this,
-                        new DCCDebugMessageArgs("File already exists, removing from xdcc que!\n", "DCC DOWNLOADER"));
+                        new DccDebugMessageArgs("File already exists, removing from xdcc que!\n", "DCC DOWNLOADER"));
                     _ircClient.SendMessageToAll("/msg " + BotName + " xdcc remove " + PackNum);
                     _ircClient.SendMessageToAll("/msg " + BotName + " xdcc cancel");
                     UpdateStatus("FAILED: ALREADY EXISTS");
                 }
                 OnDccDebugMessage?.Invoke(this,
-                    new DCCDebugMessageArgs("File has been downloaded! \n File Location:" + CurrentFilePath, "DCC DOWNLOADER"));
+                    new DccDebugMessageArgs("File has been downloaded! \n File Location:" + CurrentFilePath, "DCC DOWNLOADER"));
 
             }
             catch (SocketException e)
             {
                 OnDccDebugMessage?.Invoke(this,
-                    new DCCDebugMessageArgs("Something went wrong while downloading the file! Removing from xdcc que to be sure! Error:\n" + e.ToString(), "DCC DOWNLOADER"));
+                    new DccDebugMessageArgs("Something went wrong while downloading the file! Removing from xdcc que to be sure! Error:\n" + e.ToString(), "DCC DOWNLOADER"));
                 _ircClient.SendMessageToAll("/msg " + BotName + " xdcc remove " + PackNum);
                 _ircClient.SendMessageToAll("/msg " + BotName + " xdcc cancel");
                 UpdateStatus("FAILED: CONNECTING");
@@ -583,7 +583,7 @@ namespace SimpleIRCLib.Clients
             catch (Exception ex)
             {
                 OnDccDebugMessage?.Invoke(this,
-                    new DCCDebugMessageArgs("Something went wrong while downloading the file! Removing from xdcc que to be sure! Error:\n" + ex.ToString(), "DCC DOWNLOADER"));
+                    new DccDebugMessageArgs("Something went wrong while downloading the file! Removing from xdcc que to be sure! Error:\n" + ex.ToString(), "DCC DOWNLOADER"));
                 _ircClient.SendMessageToAll("/msg " + BotName + " xdcc remove " + PackNum);
                 _ircClient.SendMessageToAll("/msg " + BotName + " xdcc cancel");
                 UpdateStatus("FAILED: UNKNOWN");
@@ -598,7 +598,7 @@ namespace SimpleIRCLib.Clients
         private void UpdateStatus(string statusin)
         {
             Status = statusin;
-            OnDccEvent?.Invoke(this, new DCCEventArgs(this));
+            OnDccEvent?.Invoke(this, new DccEventArgs(this));
         }
 
         /// <summary>
@@ -610,7 +610,7 @@ namespace SimpleIRCLib.Clients
             if (CheckIfDownloading())
             {
                 OnDccDebugMessage?.Invoke(this,
-                    new DCCDebugMessageArgs("File " + CurrentFilePath + " will be deleted after aborting.", "DCC DOWNLOADER"));
+                    new DccDebugMessageArgs("File " + CurrentFilePath + " will be deleted after aborting.", "DCC DOWNLOADER"));
 
                 _shouldAbort = true;
 
@@ -671,19 +671,19 @@ namespace SimpleIRCLib.Clients
             if (parts.Length >= 3)
             {
                 OnDccDebugMessage?.Invoke(this,
-                    new DCCDebugMessageArgs("DCCClient: converting ip: " + ip, "DCC IP PARSER"));
+                    new DccDebugMessageArgs("DCCClient: converting ip: " + ip, "DCC IP PARSER"));
                 string NewIP = parts[3] + "." + parts[2] + "." + parts[1] + "." + parts[0];
                 OnDccDebugMessage?.Invoke(this,
-                    new DCCDebugMessageArgs("DCCClient: to: " + NewIP, "DCC IP PARSER"));
+                    new DccDebugMessageArgs("DCCClient: to: " + NewIP, "DCC IP PARSER"));
 
                 return NewIP;
             }
             else
             {
                 OnDccDebugMessage?.Invoke(this,
-                    new DCCDebugMessageArgs("DCCClient: converting ip: " + ip, "DCC IP PARSER"));
+                    new DccDebugMessageArgs("DCCClient: converting ip: " + ip, "DCC IP PARSER"));
                 OnDccDebugMessage?.Invoke(this,
-                    new DCCDebugMessageArgs("DCCClient: amount of parts: " + parts.Length, "DCC IP PARSER"));
+                    new DccDebugMessageArgs("DCCClient: amount of parts: " + parts.Length, "DCC IP PARSER"));
                 return "0.0.0.0";
             }
         }

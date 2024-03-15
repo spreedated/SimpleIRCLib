@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -6,6 +6,7 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>unitTestsKey.snk</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
+    <NoWarn>1701;1702;IDE0290;IDE0063;S1186</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

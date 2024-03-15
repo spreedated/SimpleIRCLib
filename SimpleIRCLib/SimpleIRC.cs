@@ -1,36 +1,57 @@
-﻿using SimpleIRCLib.Exceptions;
-using SimpleIRCLib.Clients;
-using System.Threading;
+﻿using SimpleIRCLib.Clients;
+using SimpleIRCLib.Exceptions;
 using System;
+using System.Threading;
 
 namespace SimpleIRCLib
 {
     /// <summary>
     /// A combiner class that combines all the logic from both the IrcClient & DCCClient with simple methods to control these clients.
     /// </summary>
-    public class SimpleIRC : IDisposable
+    public class SimpleIrc : IDisposable
     {
         /// <summary>
         /// Ip address of irc server
         /// </summary>
         public string NewIP { get; set; }
+
+        private int _NewPort;
+        private bool disposedValue;
+
         /// <summary>
         /// Port of irc server to connect to
         /// </summary>
-        public int NewPort { get { return _NewPort; } set { _NewPort = value; if (_NewPort > 65535 || _NewPort <= 9) { throw new InvalidPortException($"Port {_NewPort} is not valid"); } } }
-        private int _NewPort;
+        public int NewPort
+        {
+            get
+            {
+                return _NewPort;
+            }
+            set
+            {
+                _NewPort = value;
+                if (_NewPort > 65535 || _NewPort <= 9)
+                {
+                    throw new InvalidPortException($"Port {_NewPort} is not valid");
+                }
+            }
+        }
+
         /// <summary>
         /// Username to register on irc server
         /// </summary>
         public string NewUsername { get; set; }
+
         /// <summary>
         /// List with channels seperated with ',' to join when connecting to IRC server
         /// </summary
         public string NewChannels { get; set; }
+
         /// <summary>
         /// Password to connect to a secured irc server
         /// </summary>
         public string NewPassword { get; set; }
+
         /// <summary>
         /// download directory used for DCCClient.cs
         /// </summary>
@@ -40,6 +61,7 @@ namespace SimpleIRCLib
         /// Irc Client for sending and receiving messages to a irc server 
         /// </summary>
         public IrcClient IrcClient { get; set; }
+
         /// <summary>
         /// DCCClient used by the IRCClient for starting a download on a separate thread using the DCC Protocol
         /// </summary>
@@ -49,10 +71,10 @@ namespace SimpleIRCLib
         /// <summary>
         /// Constructor, sets up bot ircclient and dccclient, so that users can register event handlers.
         /// </summary>
-        public SimpleIRC()
+        public SimpleIrc()
         {
-            IrcClient = new IrcClient();
-            DccClient = new DCCClient();
+            this.IrcClient = new IrcClient();
+            this.DccClient = new DCCClient();
         }
 
 
@@ -68,13 +90,13 @@ namespace SimpleIRCLib
         /// <param name="enableSSL">Timeout, optional parameter, where default value is 3000 milliseconds, the maximum time before a server needs to answer, otherwise errors are thrown.</param>
         public void SetupIrc(string ip, string username, string channels, int port = 0, string password = null, int timeout = 3000, bool enableSSL = true, bool acceptAllCertificates = true)
         {
-            NewIP = ip;
-            NewPort = port;
-            NewUsername = username;
-            NewPassword = password;
-            NewChannels = channels;
+            this.NewIP = ip;
+            this.NewPort = port;
+            this.NewUsername = username;
+            this.NewPassword = password;
+            this.NewChannels = channels;
 
-            IrcClient.SetConnectionInformation(ip, username, channels, DccClient, DownloadDir, port, password, timeout, enableSSL, acceptAllCertificates);
+            this.IrcClient.SetConnectionInformation(ip, username, channels, this.DccClient, this.DownloadDir, port, password, timeout, enableSSL, acceptAllCertificates);
         }
 
         /// <summary>
@@ -83,8 +105,8 @@ namespace SimpleIRCLib
         /// <param name="downloaddir"> Requires a path to a directory of type string as parameter.</param>
         public void SetCustomDownloadDir(string downloaddir)
         {
-            DownloadDir = downloaddir;
-            IrcClient.SetDownloadDirectory(downloaddir);
+            this.DownloadDir = downloaddir;
+            this.IrcClient.SetDownloadDirectory(downloaddir);
         }
 
         /// <summary>
@@ -93,14 +115,14 @@ namespace SimpleIRCLib
         /// <returns>true or false depending if it starts succesfully</returns>
         public bool StartClient()
         {
-            if (IrcClient != null)
+            if (this.IrcClient != null)
             {
-                if (!IrcClient.IsConnectionEstablished())
+                if (!this.IrcClient.IsConnectionEstablished())
                 {
-                    IrcClient.Connect();
+                    this.IrcClient.Connect();
 
                     int timeout = 0;
-                    while (!IrcClient.IsClientRunning())
+                    while (!this.IrcClient.IsClientRunning())
                     {
                         Thread.Sleep(1);
                         if (timeout >= 3000)
@@ -122,7 +144,7 @@ namespace SimpleIRCLib
         /// <returns>true or false</returns>
         public bool IsClientRunning()
         {
-            return IrcClient.IsClientRunning();
+            return this.IrcClient.IsClientRunning();
         }
 
         /// <summary>
@@ -131,8 +153,8 @@ namespace SimpleIRCLib
         /// <returns>true or false depending on succes</returns>
         internal void StopClient()
         {
-            IrcClient.Dispose();
-            IrcClient.StopXDCCDownload();
+            this.IrcClient.Dispose();
+            this.IrcClient.StopXDCCDownload();
         }
 
         /// <summary>
@@ -141,7 +163,7 @@ namespace SimpleIRCLib
         /// <returns></returns>
         public bool StopXDCCDownload()
         {
-            return IrcClient.StopXDCCDownload();
+            return this.IrcClient.StopXDCCDownload();
         }
 
         /// <summary>
@@ -150,7 +172,7 @@ namespace SimpleIRCLib
         /// <returns></returns>
         public bool CheckIfDownload()
         {
-            return IrcClient.CheckIfDownloading();
+            return this.IrcClient.CheckIfDownloading();
         }
 
         /// <summary>
@@ -158,7 +180,7 @@ namespace SimpleIRCLib
         /// </summary>
         public void GetUsersInCurrentChannel()
         {
-            IrcClient.GetUsersInChannel();
+            this.IrcClient.GetUsersInChannel();
         }
 
         /// <summary>
@@ -167,7 +189,7 @@ namespace SimpleIRCLib
         /// <param name="channel"></param>
         public void GetUsersInDifferentChannel(string channel)
         {
-            IrcClient.GetUsersInChannel(channel);
+            this.IrcClient.GetUsersInChannel(channel);
         }
 
         /// <summary>
@@ -177,7 +199,7 @@ namespace SimpleIRCLib
         /// <returns>true if succesfully send</returns>
         public bool SendMessageToAll(string message)
         {
-            return IrcClient.SendMessageToAll(message);
+            return this.IrcClient.SendMessageToAll(message);
         }
 
         /// <summary>
@@ -188,7 +210,7 @@ namespace SimpleIRCLib
         /// <returns>true/false depending if sending was succesfull</returns>
         public bool SendMessageToChannel(string message, string channel)
         {
-            return IrcClient.SendMessageToChannel(message, channel);
+            return this.IrcClient.SendMessageToChannel(message, channel);
         }
 
         /// <summary>
@@ -198,19 +220,30 @@ namespace SimpleIRCLib
         /// <returns>true/false depending if sending was succesfull</returns>
         public bool SendRawMessage(string message)
         {
-            return IrcClient.SendRawMsg(message);
+            return this.IrcClient.SendRawMsg(message);
         }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    this.StopClient();
+                    this.IrcClient.StopClient();
+                    if (this.DccClient.CheckIfDownloading())
+                    {
+                        this.DccClient.AbortDownloader(1);
+                    }
+                }
+
+                disposedValue = true;
+            }
+        }
         public void Dispose()
         {
+            this.Dispose(disposing: true);
             GC.SuppressFinalize(this);
-
-            this.StopClient();
-            this.IrcClient.StopClient();
-            if (this.DccClient.CheckIfDownloading())
-            {
-                this.DccClient.AbortDownloader(1);
-            }
         }
     }
 }

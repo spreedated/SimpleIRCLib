@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>net8.0</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>5.0.0</Version>
+    <Version>8.0.0</Version>
     <Authors>Eldin Zenderink, Markus Wackermann</Authors>
     <Company>None</Company>
     <Description>A easy to use, easy to implent, IRC library with DCC (Download) support for C#.
@@ -20,6 +20,7 @@ https://github.com/EldinZenderink/SimpleIRCLib</Description>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageIcon>icon_1024_1024.png</PackageIcon>
+    <NoWarn>1701;1702;IDE0290;IDE0063</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
