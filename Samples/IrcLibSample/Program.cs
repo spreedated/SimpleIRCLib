@@ -1,20 +1,27 @@
-﻿using SimpleIRCLib;
-using SimpleIRCLib.EventArgs;
+﻿using System.Collections.Generic;
 using System;
-using System.Collections.Generic;
+using SimpleIRCLib.EventArgs;
+using SimpleIRCLib;
 
+<<<<<<<< HEAD:Samples/IrcLibSample/Program.cs
 namespace IrcLibSample
+========
+namespace IrcLibDemo
+>>>>>>>> e6cc483fe397f88e6751c72d0d6f83d9e3c45e59:IrcLibDemo/Program.cs
 {
     internal class Program
     {
         private static SimpleIrc irc;
+<<<<<<<< HEAD:Samples/IrcLibSample/Program.cs
         public static void Main(string[] args)
+========
+        static void Main(string[] args)
+>>>>>>>> e6cc483fe397f88e6751c72d0d6f83d9e3c45e59:IrcLibDemo/Program.cs
         {
             //setup vars
             string ip;
             int port;
             string username;
-            string password;
             string channel;
 
             Console.WriteLine("Server IP(default is : irc.rizon.net) = ");
@@ -37,12 +44,6 @@ namespace IrcLibSample
             if ((username = Console.ReadLine()) == "")
             {
                 username = "AbstractShitFace";
-            }
-
-            Console.WriteLine("Password(not working yet, default is : ) = ");
-            if ((password = Console.ReadLine()) == "")
-            {
-                password = "";
             }
 
             Console.WriteLine("Channel(default is : #RareIRC) = ");
@@ -75,7 +76,11 @@ namespace IrcLibSample
             }
         }
 
+<<<<<<<< HEAD:Samples/IrcLibSample/Program.cs
         public static void DownloadStatusChanged(object source, DccEventArgs args)
+========
+        public static void DownloadStatusChanged(object source, DCCEventArgs args)
+>>>>>>>> e6cc483fe397f88e6751c72d0d6f83d9e3c45e59:IrcLibDemo/Program.cs
         {
             Console.WriteLine("===============DCC EVENT===============");
             Console.WriteLine("DOWNLOAD Bot: " + args.Bot);
@@ -123,7 +128,11 @@ namespace IrcLibSample
             }
         }
 
+<<<<<<<< HEAD:Samples/IrcLibSample/Program.cs
         public static void DccDebugCallback(object source, DccDebugMessageArgs args)
+========
+        public static void DccDebugCallback(object source, DCCDebugMessageArgs args)
+>>>>>>>> e6cc483fe397f88e6751c72d0d6f83d9e3c45e59:IrcLibDemo/Program.cs
         {
             Console.WriteLine("===============IRC DEBUG MESSAGE===============");
             Console.WriteLine(args.Type + "|" + args.Message);

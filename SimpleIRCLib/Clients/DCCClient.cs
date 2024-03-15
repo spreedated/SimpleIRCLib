@@ -13,9 +13,8 @@ namespace SimpleIRCLib.Clients
     /// <summary>
     /// Class for downloading files using the DCC protocol on a sperarate thread from the main IRC Client thread.
     /// </summary>
-    public class DCCClient
+    public class DccClient
     {
-
         /// <summary>
         /// For firing update event using DCCEventArgs from DCCEventArgs.cs
         /// </summary>
@@ -103,14 +102,6 @@ namespace SimpleIRCLib.Clients
         /// Current download directory that will be used when starting a download
         /// </summary>
         private string _curDownloadDir;
-
-        /// <summary>
-        /// Initial constructor.
-        /// </summary>
-        public DCCClient()
-        {
-            IsDownloading = false;
-        }
 
         /// <summary>
         /// Starts a downloader by parsing the received message from the irc server on information
